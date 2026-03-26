@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "client_secrets_path": "runtime/oauth_client.json",
+  "active_mailboxes": [],
+  "mailboxes": []
+}

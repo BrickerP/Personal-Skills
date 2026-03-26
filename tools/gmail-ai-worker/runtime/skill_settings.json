@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "goal": "Keep Gmail useful without taking final decision power away from the user. Codex should triage, prepare drafts, and reduce notification noise while the user still decides what to send.",
+  "enabled_capabilities": {
+    "priority_triage": true,
+    "draft_generation": true,
+    "email_session_tracking": true,
+    "notification_cleanup": true,
+    "daily_review": true,
+    "vendor_and_account_monitoring": true,
+    "prompt_driven_one_off_tasks": true
+  },
+  "automation_defaults": {
+    "max_candidate_threads_scan": 200,
+    "default_query": "label:inbox newer_than:14d -category:promotions -category:social -in:drafts -in:sent",
+    "hourly_recent_query": "label:inbox newer_than:3d -category:promotions -category:social -in:drafts -in:sent",
+    "daily_review_query": "label:inbox newer_than:30d -category:promotions -category:social -in:drafts -in:sent",
+    "recent_scan_limit": 50,
+    "hourly_mode_goal": "Continuously sort importance, prepare useful drafts, and clean low-value notifications while staying conservative on risky decisions.",
+    "daily_review_goal": "Summarize active email sessions, draft-ready threads, blocked threads, and items that still need user judgment."
+  },
+  "action_policy": {
+    "never_send_email": true,
+    "allow_draft_creation": true,
+    "allow_archive_low_value_notifications": true,
+    "allow_auto_labeling": true,
+    "allow_deletion": false,
+    "require_human_review_for_sensitive_threads": true
+  },
+  "cleanup_policy": {
+    "archive_github_merge_notifications": true,
+    "archive_github_approval_notifications": true,
+    "archive_npm_publish_success": true,
+    "keep_vendor_usage_alerts_visible": true,
+    "keep_security_and_account_mail_visible": true
+  },
+  "session_policy": {
+    "review_closed_sessions": false,
+    "track_waiting_for_user": true,
+    "track_waiting_for_other_side": true,
+    "mark_stale_drafts_after_new_message": true,
+    "suggest_follow_up_timing": true,
+    "rediscover_forgotten_active_sessions": true
+  },
+  "sensitive_keywords": [
+    "billing",
+    "invoice",
+    "payment",
+    "contract",
+    "legal",
+    "security",
+    "password",
+    "otp",
+    "verification",
+    "hr"
+  ],
+  "report_contract": {
+    "path": "runtime/latest_run_report.md",
+    "overwrite_each_run": true,
+    "user_facing": false,
+    "include_enabled_capabilities": true,
+    "include_priority_order": true,
+    "include_actions_taken": true,
+    "include_skipped_items": true,
+    "include_human_review_items": true,
+    "max_style": "compact_working_note",
+    "daily_progress_timezone": "Asia/Shanghai",
+    "daily_progress_retention_days": 31
+  }
+}
