@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lark History Exporter"
+  short_description: "Export visible Lark chat history to local Markdown."
+  default_prompt: "Export my visible Lark chat history into local Markdown files."

@@ -1,0 +1,111 @@
+{
+  "name": "lavayou-author-lens-yuanqi",
+  "source_skill": "lavayou-author-lens",
+  "article_count": 1005,
+  "date_range": {
+    "min": "2019-08-20",
+    "max": "2026-06-23"
+  },
+  "contains_fulltext": false,
+  "intended_platform": "Tencent Yuanqi",
+  "files": {
+    "agent_prompt.md": 1788,
+    "knowledge/00-author-overview.md": 2832,
+    "knowledge/01-operating-frame.md": 3675,
+    "knowledge/02-topic-map.md": 4718,
+    "knowledge/03-response-playbook.md": 2940,
+    "knowledge/04-corpus-audit.md": 2527,
+    "knowledge/pattern-anti-traffic-frame.md": 176458,
+    "knowledge/pattern-base-and-productivity.md": 178219,
+    "knowledge/pattern-binary-dissolver.md": 174712,
+    "knowledge/pattern-common-sense-stress-test.md": 174275,
+    "knowledge/pattern-follow-the-money.md": 176583,
+    "knowledge/pattern-missing-variable-audit.md": 172925,
+    "knowledge/pattern-motive-vs-effect.md": 174059,
+    "knowledge/pattern-plain-argument.md": 36703,
+    "knowledge/source-index.csv": 390057,
+    "knowledge/topic-culture-values.md": 600501,
+    "knowledge/topic-family-parenting.md": 273520,
+    "knowledge/topic-gender-intimacy.md": 126613,
+    "knowledge/topic-health-medicine.md": 150727,
+    "knowledge/topic-history-geopolitics.md": 422421,
+    "knowledge/topic-media-epistemics.md": 164651,
+    "knowledge/topic-money-career-class.md": 346423,
+    "knowledge/topic-political-economy.md": 288116,
+    "knowledge/topic-science-technology.md": 169437,
+    "opening_questions.md": 408,
+    "setup.md": 1258
+  },
+  "topic_counts": [
+    [
+      "culture-values",
+      897
+    ],
+    [
+      "history-geopolitics",
+      618
+    ],
+    [
+      "money-career-class",
+      511
+    ],
+    [
+      "political-economy",
+      414
+    ],
+    [
+      "family-parenting",
+      402
+    ],
+    [
+      "science-technology",
+      251
+    ],
+    [
+      "media-epistemics",
+      239
+    ],
+    [
+      "health-medicine",
+      223
+    ],
+    [
+      "gender-intimacy",
+      183
+    ]
+  ],
+  "pattern_counts": [
+    [
+      "motive-vs-effect",
+      523
+    ],
+    [
+      "common-sense-stress-test",
+      488
+    ],
+    [
+      "follow-the-money",
+      410
+    ],
+    [
+      "missing-variable-audit",
+      350
+    ],
+    [
+      "binary-dissolver",
+      308
+    ],
+    [
+      "anti-traffic-frame",
+      282
+    ],
+    [
+      "base-and-productivity",
+      278
+    ],
+    [
+      "plain-argument",
+      63
+    ]
+  ]
+}

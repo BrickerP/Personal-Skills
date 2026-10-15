@@ -1,0 +1,9 @@
+{
+  "name": "omx-job-apply-tools",
+  "private": true,
+  "type": "commonjs",
+  "devDependencies": {
+    "chrome-remote-interface": "^0.33.3",
+    "playwright": "^1.61.0"
+  }
+}

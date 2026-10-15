@@ -1,0 +1,42 @@
+{
+  "basics": {
+    "name": "Your Name",
+    "email": "yplmicro@gmail.com",
+    "phone": null,
+    "location": "San Francisco Bay Area",
+    "linkedin": "https://www.linkedin.com/in/your-profile/",
+    "github": [
+      "https://github.com/yourhandle"
+    ],
+    "work_authorization": "US Permanent Resident — No sponsorship required, now or in the future"
+  },
+  "resume_paths": {
+    "ai_agent_1p_en": "/Users/yupeng/Documents/resumes/Resume_1P_EN.pdf",
+    "ai_agent_2p_en": "/Users/yupeng/Documents/resumes/Resume_2P_EN.pdf",
+    "default_en": "/Users/yupeng/Documents/resumes/Resume_1P_EN.pdf"
+  },
+  "positioning": {
+    "target_geo": [
+      "San Francisco Bay Area",
+      "Remote US",
+      "United States"
+    ],
+    "target_roles": [
+      "AI Agent Engineer",
+      "AI Platform Engineer",
+      "Applied AI Engineer",
+      "Agent Infrastructure Engineer"
+    ],
+    "current_company_public_label": "VC-backed Voice AI Platform Startup",
+    "stealth_mode": true,
+    "never_emit_in_outbound_materials": [
+      "current employer legal name",
+      "internal project codenames",
+      "client names",
+      "revenue numbers",
+      "private org/person names",
+      "internal URLs",
+      "private repository names"
+    ]
+  }
+}

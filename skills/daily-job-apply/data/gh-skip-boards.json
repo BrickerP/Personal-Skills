@@ -1,0 +1,17 @@
+{
+  "description": "Mirror of ~/job-hunt/data/greenhouse-skip-boards.json — edit canonical file only.",
+  "canonical_path": "~/job-hunt/data/greenhouse-skip-boards.json",
+  "boards": [
+    "bessemerventurepartners",
+    "defenseunicorns",
+    "flyzipline",
+    "inversionspace",
+    "lilasciences",
+    "newsbreak",
+    "sambanovasystems",
+    "singlestore",
+    "telnyx54",
+    "vardaspace",
+    "vectranetworks"
+  ]
+}

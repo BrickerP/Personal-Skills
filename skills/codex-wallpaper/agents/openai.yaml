@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Wallpaper"
+  short_description: "Safely manage local Codex Dream Skin wallpapers"
+  default_prompt: "Use $codex-wallpaper to list, preview, import, or safely apply a saved Codex wallpaper."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lavayou Author Lens"
+  short_description: "Public article derived analysis lens and source index"
+  default_prompt: "Use $lavayou-author-lens to analyze this issue through the public-article-derived topic map and reasoning frames."

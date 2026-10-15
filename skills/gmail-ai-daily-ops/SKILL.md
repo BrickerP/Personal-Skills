@@ -1,13 +1,33 @@
 ---
 name: gmail-ai-daily-ops
-description: Operate Gmail inboxes with Codex in the driver seat using the local `gmail-ai-worker` package. Use when the user wants Codex to read Gmail, prioritize threads, inspect context in real time, draft replies, archive or label messages, or run inbox automations without handing control to a rigid script workflow.
+description: "Tunnel-first Gmail operations via local gmail-ai-worker: JSON gmail_call.py exposes stable read/write ops (batch archives, drafts, snapshots) so the orchestrator agent does reasoning while Gmail stays a parallel-friendly API surface. Legacy per-thread scripts remain for compatibility."
 ---
 
 # Gmail AI Daily Ops
 
 This skill is for **prompt-driven, automation-friendly Gmail operations** where Codex stays in charge of reasoning and Gmail API only provides read/write channels.
 
-Treat the **worker root** as the local `tools/gmail-ai-worker` directory in the current workspace, or equivalently the package root that contains `gmail_ai_worker/config.py`.
+Treat the **worker root** as the local `tools/gmail-ai-worker` directory in the current workspace, or equivalently the package root that contains `gmail_ai_worker/config.py` (canonical install: `/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker`).
+
+## Tunnel-first architecture
+
+Gmail cleanup should **not** be expressed as giant bespoke shell scripts unless there is no better option.
+
+- **Orchestrator agent (Codex/Cursor/other):** parses user intent, classifies risky mail, drafts natural-language replies, composes Gmail search queries, decides keep vs archive, summarizes outcomes.
+- **Gmail tunnel (Python APIs):** only handles OAuth-bearing HTTP/Gmail primitives: list threads for a query, fetch thread payloads, bulk label/archive via batch HTTP, create drafts with structured JSON.
+- **`latest_action_plan.json` path:** optional Codex-era batching facade; internally it now emits **fewer Gmail round trips** by folding consecutive identical `modify`/`archive_thread` mutations into multipart batch requests whenever possible.
+
+Prefer **calling the tunnel repeatedly with small orthogonal JSON payloads** rather than authoring new monolithic `scripts/foo.py` wrappers. Extend `gmail_ai_worker/tunnel_api.py` dispatch with a new `op` whenever a primitive is genuinely missing—that change then benefits every agent that shells out to `gmail_call.py`.
+
+### Parallelism model
+
+Agents can accelerate work along two axes:
+
+1. **Intra-call batch throughput:** mutations like archiving are grouped into Gmail multipart batches (`service.new_batch_http_request`, chunked by `bulk_ops.chunk_size`, default ≈50 per HTTP round trip). Use ops `thread_modify_archive_batch`, `apply_action_plan.py`'s contiguous grouping, or `bulk_ops.batch_modify_threads` directly.
+
+2. **Inter-call sharding:** orchestrator splits thread id lists deterministically (`shard = thread_ids[idx::workers]`), then invokes several `python scripts/gmail_call.py` shells in parallel (Cursor tasks, terminals, wrappers). Prefer large single calls when quotas allow; multiply processes only after batches hit practical limits or heterogeneous mailboxes demand isolation.
+
+Avoid dozens of synchronous `modify_thread.py` executions for large cleanups—they exist for debugging and deterministic single-thread replay, not throughput.
 
 ## First-Use Presentation Contract
 
@@ -85,27 +105,119 @@ Do not stop at "here are my abilities." The first-use response should proactivel
 
 Only after that should you offer optional next steps such as running one immediate triage pass.
 
-The Python scripts are only transport primitives:
+## JSON tunnel interface (preferred primitive layer)
 
-- search candidate threads
-- inspect one thread in detail
-- create one Gmail draft
-- modify one thread's labels or inbox status
-- list available labels
-- connect a mailbox locally
-- choose which connected mailboxes are active
-- refresh active mailboxes locally
+Expose Gmail to agents through **`python scripts/gmail_call.py`** (stdin JSON ⇒ stdout JSON).
 
-Codex is responsible for:
+### Invocation
 
-- interpreting the user's prompt,
-- deciding what matters
-- deciding which Gmail query to run
-- deciding which threads deserve deeper inspection
-- deciding whether a reply should be drafted
-- writing the actual reply body
-- deciding whether to archive, label, or leave untouched
-- writing a readable run summary for the user
+Always start inside the worker env:
+
+```bash
+cd /Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker
+source .venv/bin/activate
+```
+
+Minimal smoke test (`mailbox` omitted when exactly one mailbox is active):
+
+```bash
+echo '{"op":"ping"}' | python scripts/gmail_call.py
+```
+
+When multiple mailboxes are active, first inspect the registry and then pass an
+explicit mailbox key:
+
+```bash
+echo '{"op":"mailboxes_registry"}' | python scripts/gmail_call.py
+echo '{"op":"ping","mailbox":"yplmicro-gmail-com"}' | python scripts/gmail_call.py
+```
+
+Current known local mailbox keys:
+
+- `yplmicro-gmail-com` -> `yplmicro@gmail.com`
+
+### Connecting mailboxes
+
+Use the wrapper so the worker root and virtualenv are selected correctly from
+any shell:
+
+```bash
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/scripts/run_connect_mailbox.sh
+```
+
+The canonical OAuth client is:
+
+```text
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/oauth_client.json
+```
+
+It should point at a Desktop OAuth client you control. Note (2026-10-15): the
+original client belonged to a retired work project — if the personal Gmail
+connection breaks, replace `oauth_client.json` with a client from your own GCP
+project. The old `ferrous-module-489103-m2` client should not be used because
+it produced `org_internal` failures.
+
+Before connecting a new Gmail account, make sure Gmail API is enabled in the
+same project that owns the OAuth client. If OAuth succeeds but the Gmail profile
+probe fails with `accessNotConfigured`, enable Gmail API for the project that owns the OAuth client
+and rerun:
+
+```bash
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/scripts/run_connect_mailbox.sh --resume-probe
+```
+
+### Supported `op` values (`payload` fields)
+
+| `op` | Purpose | Payload highlights |
+| --- | --- | --- |
+| `ping` | Auth + mailbox probe | Optional `mailbox` key |
+| `mailboxes_registry` | Describe connected accounts | None |
+| `snapshot_bundle` | Full thread excerpts for Codex reasoning | `query`, `max_threads`, `messages_per_thread`, `excerpt_chars` |
+| `threads_list` | Lightweight id list (`threads.list`) | `query`, `max_results` |
+| `thread_detail` | Expanded thread context | `thread_id`; `format`=`minimal`*(default)* or `raw` |
+| `labels_list` | Enumerate Gmail labels | None |
+| `thread_modify_batch` | Batch label changes / archive semantics | `thread_ids`, `add_labels`, `remove_labels`, optional `archive` |
+| `thread_modify_archive_batch` | Archive many threads efficiently | `thread_ids`; optional extra `remove_labels` |
+| `draft_create` | Create reply draft (`body`, optional `subject`/`to`/`cc`) | `thread_id` |
+
+When multiple mailboxes exist, supply `"mailbox":"<registry-key>"`.
+
+### Designing new capabilities
+
+Adding behavior should bias toward **new trivial `dispatch` ops** (~10–40 LOC) wired to Gmail API helpers, documented in this table—not copying another shell script fork. Prefer batch-oriented APIs over `for tid in ids: subprocess.run(...)`.
+
+## Legacy CLI scripts (compatibility tier)
+
+Older entrypoints (`collect_thread_snapshot.py`, `modify_thread.py`, etc.) remain for human debugging but should not anchor automation design: they incur per-thread OAuth round trips unless converted to wrappers around `tunnel_api.dispatch`.
+
+Detailed commands for reference:
+
+```bash
+python scripts/collect_thread_snapshot.py --query "<GMAIL_QUERY>"
+python scripts/get_thread_detail.py --thread-id <THREAD_ID>
+python scripts/create_reply_draft.py --thread-id <THREAD_ID> --body "<plain text reply>"
+python scripts/modify_thread.py --thread-id <THREAD_ID> --archive
+python scripts/modify_thread.py --thread-id <THREAD_ID> --add-label "waiting-customer"
+python scripts/list_labels.py
+python scripts/refresh_active_mailboxes.py
+python scripts/install_launchd_refresh.py
+python scripts/apply_action_plan.py
+python scripts/connect_mailbox.py
+python scripts/list_connected_mailboxes.py
+python scripts/set_active_mailboxes.py --mailbox <MAILBOX_KEY>
+```
+
+All primitives may accept `--mailbox <MAILBOX_KEY>` when ambiguity exists.
+
+## Agent reasoning responsibilities
+
+The orchestrating LLM/agent remains accountable for cognition and policy—not the Gmail tunnel:
+
+- interpret the user's prompt against `skill_settings.json` safeguards
+- choose Gmail search scopes and escalation vs archive policies
+- determine which threads need deep inspection versus cheap heuristics
+- author reply bodies and decide draft vs defer
+- write human-readable summaries and `latest_run_report.md` checkpoints
 
 ## Supported Orchestrated Capabilities
 
@@ -166,7 +278,7 @@ It is not meant to:
 This skill should always read:
 
 ```text
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/skill_settings.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/skill_settings.json
 ```
 
 That file is the user-facing activation surface. If the user wants to turn capabilities on or off, tighten risk tolerance, or change cleanup policy, Codex should update that file instead of baking hidden assumptions into the run.
@@ -178,7 +290,7 @@ The user may also edit `skill_settings.json` manually at any time. Codex should 
 For mailbox connectivity, this skill should also manage:
 
 ```text
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/mailboxes.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/mailboxes.json
 ```
 
 That file tracks connected mailboxes and which ones are active by default.
@@ -186,7 +298,7 @@ That file tracks connected mailboxes and which ones are active by default.
 For Codex's own bounded working memory, this skill may also overwrite:
 
 ```text
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_run_report.md
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_run_report.md
 ```
 
 This file is for Codex's internal continuity only. It is not the primary user interface.
@@ -194,8 +306,8 @@ This file is for Codex's internal continuity only. It is not the primary user in
 This skill should also prefer reading:
 
 ```text
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_refresh_cache.json
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_refresh_status.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_refresh_cache.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_refresh_status.json
 ```
 
 Those files are the preferred source of recent Gmail state during automation. They should be produced by a local short-lived refresh job, not by a long-running daemon.
@@ -203,8 +315,8 @@ Those files are the preferred source of recent Gmail state during automation. Th
 This skill may also write:
 
 ```text
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_action_plan.json
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_apply_status.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_action_plan.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_apply_status.json
 ```
 
 `latest_action_plan.json` is the structured handoff from Codex reasoning to the local Gmail apply job.
@@ -220,9 +332,9 @@ For user questions like:
 this skill should first read:
 
 ```text
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/daily_progress_YYYY-MM-DD.md
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_apply_status.json
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_refresh_status.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/daily_progress_YYYY-MM-DD.md
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_apply_status.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_refresh_status.json
 ```
 
 and answer from those files before deciding whether any fresh Gmail read is needed.
@@ -259,96 +371,11 @@ Use recommended defaults first, but explicitly offer the user a chance to change
 
 ## Workspace
 
-- Root: `~/.codex/gmail-ai-daily-ops/gmail-ai-worker`
-- Runtime dir: `~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime`
-- Only persistent run artifact: `~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_run_report.md`
-
-## Primitive Commands
-
-Always start in:
-
-```bash
-cd ~/.codex/gmail-ai-daily-ops/gmail-ai-worker
-source .venv/bin/activate
-```
-
-Search threads with an arbitrary Gmail query:
-
-```bash
-python scripts/collect_thread_snapshot.py --query "<GMAIL_QUERY>"
-```
-
-If no query is given, the default inbox query is used.
-
-Inspect one thread in detail:
-
-```bash
-python scripts/get_thread_detail.py --thread-id <THREAD_ID>
-```
-
-Create one Gmail draft from a plain-text body file:
-
-```bash
-python scripts/create_reply_draft.py --thread-id <THREAD_ID> --body "<plain text reply>"
-```
-
-Modify one thread:
-
-Archive:
-
-```bash
-python scripts/modify_thread.py --thread-id <THREAD_ID> --archive
-```
-
-Apply labels:
-
-```bash
-python scripts/modify_thread.py --thread-id <THREAD_ID> --add-label "waiting-customer"
-```
-
-List labels:
-
-```bash
-python scripts/list_labels.py
-```
-
-Refresh all active mailboxes locally:
-
-```bash
-python scripts/refresh_active_mailboxes.py
-```
-
-Install the local macOS refresh scheduler:
-
-```bash
-python scripts/install_launchd_refresh.py
-```
-
-Apply the latest action plan locally:
-
-```bash
-python scripts/apply_action_plan.py
-```
-
-Connect a mailbox:
-
-```bash
-python scripts/connect_mailbox.py
-```
-
-List connected mailboxes:
-
-```bash
-python scripts/list_connected_mailboxes.py
-```
-
-Choose active mailboxes:
-
-```bash
-python scripts/set_active_mailboxes.py --mailbox <MAILBOX_KEY>
-```
-
-All Gmail primitives may also accept `--mailbox <MAILBOX_KEY>`. If omitted, the active mailbox is used automatically when there is exactly one active mailbox.
+- Root: `/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker`
+- Runtime dir: `/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime`
+- Canonical JSON tunnel CLI: `/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/scripts/gmail_call.py`
+- Tunnel implementation: `/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/gmail_ai_worker/tunnel_api.py`, `/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/gmail_ai_worker/bulk_ops.py`
+- Only persistent Codex-internal run artifact contract: `/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_run_report.md`
 
 ## How To Use This Skill
 
@@ -399,10 +426,10 @@ Behavior:
 - answer directly from:
 
 ```text
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/daily_progress_YYYY-MM-DD.md
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_apply_status.json
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_refresh_status.json
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_run_report.md
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/daily_progress_YYYY-MM-DD.md
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_apply_status.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_refresh_status.json
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_run_report.md
 ```
 
 - only suggest a fresh refresh if the cached data is obviously stale or missing
@@ -422,7 +449,7 @@ Behavior:
 - first run a local refresh:
 
 ```bash
-cd ~/.codex/gmail-ai-daily-ops/gmail-ai-worker
+cd /Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker
 source .venv/bin/activate
 python scripts/refresh_active_mailboxes.py
 ```
@@ -506,7 +533,7 @@ Do not force the user into a fixed workflow. Instead:
 3. Read candidate threads.
 4. Dive deeper only where needed.
 5. Decide which Gmail changes should happen.
-6. Write `latest_action_plan.json` whenever local Gmail writes should be performed.
+6. Execute writes through the **`gmail_call.py` tunnel** whenever possible (`thread_modify_archive_batch`, `draft_create`, etc.), optionally sharded across terminals/sub-agents. Fall back to `latest_action_plan.json` + `apply_action_plan.py` when you explicitly want durable `apply_state.json` bookkeeping.
 7. Overwrite `latest_run_report.md` with the result of this run only.
 
 When automated, the skill should also:
@@ -523,7 +550,7 @@ When automated, the skill should also:
 At the end of each run, overwrite this file:
 
 ```text
-~/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_run_report.md
+/Users/yupeng/.codex/gmail-ai-daily-ops/gmail-ai-worker/runtime/latest_run_report.md
 ```
 
 The report is an internal Codex working note, not a user-facing destination.

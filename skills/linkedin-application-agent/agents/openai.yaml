@@ -1,0 +1,4 @@
+interface:
+  display_name: "LinkedIn Application Agent"
+  short_description: "Batch LinkedIn Easy Apply safely"
+  default_prompt: "Apply to LinkedIn jobs using Chrome Debug, my approved resume/contact info, and conservative truthful answers; stop on high-risk custom questions."

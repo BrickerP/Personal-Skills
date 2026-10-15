@@ -1,0 +1,15 @@
+# Canonical active-round manifest for runtime/run-next.sh
+# Update this file when advancing Ashby/Greenhouse rounds.
+
+ashby:
+  active_round: 110
+  batch_script: $SKILL_ROOT/runtime/ashby/round110-batch.sh
+
+gh:
+  active_round: 18
+  runner_script: $SKILL_ROOT/runtime/greenhouse/run_round18.py
+
+manual:
+  runner_script: $SKILL_ROOT/runtime/manual/manual-retry-runner.py
+
+saturation_threshold: 1500

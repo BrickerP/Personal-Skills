@@ -1,0 +1,4 @@
+interface:
+  display_name: "Job Search Orchestrator"
+  short_description: "Read-only dashboard and router for the job-search pipeline"
+  default_prompt: "Run a morning/evening job-search check: scan local state, report P0/P1/P2, and recommend the next sub-skill without applying or sending anything."

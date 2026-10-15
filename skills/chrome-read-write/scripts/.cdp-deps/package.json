@@ -1,0 +1,7 @@
+{
+  "name": "chrome-read-write-cdp",
+  "private": true,
+  "dependencies": {
+    "chrome-remote-interface": "^0.33.3"
+  }
+}

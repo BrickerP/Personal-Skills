@@ -1,0 +1,11 @@
+{
+  "description": "Greenhouse boards prioritized in round18 sort/precheck. Loaded by run_greenhouse_round18.py.",
+  "boards": [
+    "gradial",
+    "hyphenconnect",
+    "layerhealth",
+    "nebius",
+    "nexhealth",
+    "ngrokinc"
+  ]
+}

@@ -1,0 +1,225 @@
+{
+  "version": 1,
+  "updated_at": "2026-06-21T06:19:38Z",
+  "platforms": {
+    "ashby": {
+      "platform_id": "ashby",
+      "display_name": "Ashby",
+      "domain_patterns": [
+        "ashbyhq.com",
+        "jobs.ashbyhq.com"
+      ],
+      "adapter_script": "/Users/yupeng/Downloads/.omx/ashby_apply_applescript.py",
+      "adapter_type": "python-cdp",
+      "status": "production",
+      "field_mappings": {
+        "radio": {
+          "authorized to work|legally authorized|eligible to work|authorized to work in the country": "Yes",
+          "sponsor|sponsorship|require.*visa|future.*visa": "No",
+          "relocate|relocation|willing to move": "Yes",
+          "Are you authorized to work in the country you currently reside in?": "Yes",
+          "Are you authorized": "Yes"
+        },
+        "text": {
+          "city.*state|state.*city|city, state": "San Francisco, California",
+          "location|where.*based|where.*located": "San Francisco Bay Area",
+          "Location": "San Francisco, California",
+          "state": "San Francisco, California",
+          "city": "San Francisco, California"
+        }
+      },
+      "success_rate": 0.0,
+      "attempts": 501,
+      "successes": 0,
+      "last_attempt": "2026-06-21",
+      "blockers_seen": [
+        "phone-required-no-active-number",
+        "resume-upload-missing",
+        "cdp-auth-click-failed",
+        "returncode-20",
+        "blocked",
+        "manualfinish",
+        "platform-anti-bot",
+        "returncode-1"
+      ],
+      "notes": "Ashby boolean fields use button labels, not native radio inputs on many boards."
+    },
+    "greenhouse": {
+      "platform_id": "greenhouse",
+      "display_name": "Greenhouse",
+      "domain_patterns": [
+        "greenhouse.io",
+        "job-boards.greenhouse.io",
+        "boards.greenhouse.io",
+        "app.greenhouse.io"
+      ],
+      "adapter_script": "/Users/yupeng/Downloads/.omx/greenhouse_playwright_apply.cjs",
+      "adapter_type": "node-playwright",
+      "status": "production",
+      "url_resolver": "/Users/yupeng/.codex/skills/daily-job-apply/scripts/greenhouse_url_resolver.py",
+      "field_mappings": {
+        "radio": {
+          "Are you authorized": "Yes"
+        },
+        "text": {
+          "Location": "San Francisco, California",
+          "state": "San Francisco, California",
+          "city": "San Francisco, California"
+        }
+      },
+      "success_rate": 0.0,
+      "attempts": 181,
+      "successes": 0,
+      "last_attempt": "2026-06-21",
+      "blockers_seen": [
+        "phone-required-no-active-number",
+        "missing-board-job-id",
+        "embed-url-unresolved",
+        "manualfinish",
+        "blocked",
+        "answer-blockers",
+        "submit-unverified",
+        "duplicate-url",
+        "page-load-or-form-timeout",
+        "invalid-or-unhandled-required",
+        "runner-exception"
+      ],
+      "notes": "Embed URLs app.greenhouse.io/embed/job_app?token=JOB_ID require resolver before apply."
+    },
+    "lever": {
+      "platform_id": "lever",
+      "display_name": "Lever",
+      "domain_patterns": [
+        "lever.co",
+        "jobs.lever.co"
+      ],
+      "adapter_script": "/Users/yupeng/Downloads/.omx/lever_playwright_apply.cjs",
+      "adapter_type": "node-playwright",
+      "status": "production",
+      "field_mappings": {},
+      "success_rate": null,
+      "attempts": 0,
+      "successes": 0,
+      "last_attempt": null,
+      "blockers_seen": [],
+      "notes": ""
+    },
+    "workable": {
+      "platform_id": "workable",
+      "display_name": "Workable",
+      "domain_patterns": [
+        "workable.com",
+        "apply.workable.com"
+      ],
+      "adapter_script": null,
+      "adapter_type": null,
+      "status": "experimental",
+      "field_mappings": {},
+      "success_rate": null,
+      "attempts": 0,
+      "successes": 0,
+      "last_attempt": null,
+      "blockers_seen": [
+        "no-adapter"
+      ],
+      "notes": "Detected on LinkedIn external; adapter not yet implemented."
+    },
+    "workday": {
+      "platform_id": "workday",
+      "display_name": "Workday",
+      "domain_patterns": [
+        "myworkdayjobs.com",
+        "workday.com"
+      ],
+      "adapter_script": null,
+      "adapter_type": null,
+      "status": "experimental",
+      "field_mappings": {},
+      "success_rate": null,
+      "attempts": 0,
+      "successes": 0,
+      "last_attempt": null,
+      "blockers_seen": [
+        "no-adapter"
+      ],
+      "notes": "High anti-bot risk; manual or dedicated adapter required."
+    },
+    "jackandjill": {
+      "platform_id": "jackandjill",
+      "display_name": "Jack & Jill AI",
+      "domain_patterns": [
+        "jackandjill.ai"
+      ],
+      "adapter_script": null,
+      "adapter_type": null,
+      "status": "unsupported-direct",
+      "field_mappings": {},
+      "success_rate": 0.0,
+      "attempts": 0,
+      "successes": 0,
+      "last_attempt": "2026-06-11",
+      "blockers_seen": [
+        "unsupported-intermediate-platform",
+        "no-adapter"
+      ],
+      "notes": "~40% of LinkedIn external redirects on 2026-06-11. Skip in harvest; do not inline apply."
+    },
+    "jobright": {
+      "platform_id": "jobright",
+      "display_name": "Jobright AI",
+      "domain_patterns": [
+        "jobright.ai"
+      ],
+      "adapter_script": null,
+      "adapter_type": null,
+      "status": "unsupported-direct",
+      "field_mappings": {},
+      "success_rate": 0.0,
+      "attempts": 0,
+      "successes": 0,
+      "last_attempt": "2026-06-11",
+      "blockers_seen": [
+        "unsupported-intermediate-platform",
+        "no-adapter"
+      ],
+      "notes": "Intermediate aggregator; skip in harvest."
+    },
+    "remotehunter": {
+      "platform_id": "remotehunter",
+      "display_name": "RemoteHunter",
+      "domain_patterns": [
+        "remotehunter.com"
+      ],
+      "adapter_script": null,
+      "adapter_type": null,
+      "status": "unsupported-direct",
+      "field_mappings": {},
+      "success_rate": 0.0,
+      "attempts": 0,
+      "successes": 0,
+      "last_attempt": "2026-06-11",
+      "blockers_seen": [
+        "unsupported-intermediate-platform",
+        "apply-with-ai"
+      ],
+      "notes": "apply-with-ai wrapper; skip in harvest."
+    },
+    "custom": {
+      "platform_id": "custom",
+      "display_name": "Custom / Company Site",
+      "domain_patterns": [],
+      "adapter_script": null,
+      "adapter_type": null,
+      "status": "experimental",
+      "field_mappings": {},
+      "success_rate": null,
+      "attempts": 0,
+      "successes": 0,
+      "last_attempt": null,
+      "blockers_seen": [
+        "unsupported-ats"
+      ],
+      "notes": "Fallback for unrecognized domains; logged for evolution."
+    }
+  }
+}

@@ -1,0 +1,3 @@
+display_name: OpenTrain Application Agent
+short_description: Manage OpenTrain profile and job applications
+default_prompt: Use my OpenTrain profile and resume to filter suitable software/STEM roles, prepare applications, and pause before submitting.

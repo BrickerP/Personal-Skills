@@ -1,0 +1,352 @@
+{
+  "basics": {
+    "name": "Yupeng Lu",
+    "email": "yplmicro@gmail.com",
+    "phone": null,
+    "location": "San Francisco Bay Area",
+    "linkedin": "https://www.linkedin.com/in/yupeng-lu-845a0b411/",
+    "linkedin_note": "Current job-search LinkedIn profile URL; verify live tab before sending.",
+    "github": [
+      "https://github.com/yupeng-dev",
+      "https://github.com/BrickerP"
+    ],
+    "twitter": null,
+    "website": null,
+    "work_authorization": "US Permanent Resident — No sponsorship required, now or in the future"
+  },
+  "positioning": {
+    "target_geo": [
+      "San Francisco Bay Area",
+      "Remote US",
+      "United States"
+    ],
+    "target_roles": [
+      "AI Agent Engineer",
+      "AI Platform Engineer",
+      "Applied AI Engineer",
+      "Agent Infrastructure Engineer"
+    ],
+    "current_company_public_label": "VC-backed Voice AI Platform Startup",
+    "stealth_mode": true,
+    "never_emit_in_outbound_materials": [
+      "current employer legal name",
+      "internal project codenames",
+      "client names",
+      "revenue numbers",
+      "private org/person names",
+      "internal URLs",
+      "private repository names"
+    ]
+  },
+  "summary": "US Permanent Resident based for San Francisco Bay Area opportunities, with no sponsorship required now or in the future. AI infrastructure and backend platform engineer building production agent systems, MCP/tool-use platforms, API contracts, auth/billing flows, evaluation gates, and cloud deployment paths. Strong fit for Bay Area AI infra, ML systems, developer tools, and agent-platform roles needing end-to-end ownership from backend contracts to production reliability.",
+  "experience": [
+    {
+      "company": "VC-backed Voice AI Platform Startup",
+      "title": "AI Agent Engineer",
+      "location": "San Francisco Bay Area / Remote",
+      "start": "2025-08",
+      "end": "Present",
+      "bullets": [
+        "Built agent-native research and workflow infrastructure across MCP-style tools, public REST APIs, OAuth, billing, report generation, voice/interview flows, playback, and E2E surfaces.",
+        "Shipped Zod-first API contracts spanning DTOs, OpenAPI, runtime validation, CLI payloads, and agent tool responses; removed dead code and reduced cyclic dependencies between tool and REST layers.",
+        "Hardened monetized workflow paths with compact access-token flows, OAuth semantics, webhook audit logs, wallet-ledger idempotency, payment gating, and minimum-disclosure responses.",
+        "Improved report-generation integrity with eligible-transcript gates, screener/chat corpus QA, locked-fact guards, regenerated-default persistence, editorial HTML preservation, and preview-branch backports.",
+        "Built CLI/skill installer and developer-tooling distribution paths for AI coding clients, plus voice/avatar interview integrations and Nginx gateway deployment support."
+      ]
+    },
+    {
+      "company": "Private Quant Trading System",
+      "title": "Co-Engineer",
+      "location": "Remote / AWS",
+      "start": "2026-04",
+      "end": "Present",
+      "bullets": [
+        "Co-built intraday live-trading stack: scanner, factor filter, IBKR bracket execution, S3 Parquet warehouse, and researcher dashboard.",
+        "Improved live execution safety with connection heartbeat, auto-reconnect, startup reconcile from broker truth and database state, bracket-order OCO fixes, and deterministic flatten paths.",
+        "Reduced scanner and data latency with event-based waits, vectorized reject reasons, cache-hit fast paths, SQLite parse optimization, and reused timezone/schedule parsing.",
+        "Added operational dashboards, gzip uploads, daily incremental Parquet archive, blocking mypy checks, AST invariant checks, and tracked systemd/cron recovery assets."
+      ]
+    },
+    {
+      "company": "GetDateLove",
+      "title": "Founder & Full-Stack Engineer",
+      "location": "Remote",
+      "start": "2024-11",
+      "end": "Present",
+      "bullets": [
+        "Solo-built dating product with FastAPI backend, vanilla-JS PWA frontend, Redis/PostgreSQL data layer, WebSocket messaging, S3 voice notes, and AWS deployment behind Nginx/CloudFront.",
+        "Implemented payment, security, GDPR, and release-safety systems including webhook idempotency, age and sensitive-data consent, self-serve deletion, CORS/XSS fixes, and CI/Playwright/deploy gates.",
+        "Refactored frontend state ownership around app state, body state, scroll, tabs, language, notifications, profile overlays, and DOM utilities while reducing duplicated CSS and global side effects."
+      ]
+    },
+    {
+      "company": "SMU (USA)",
+      "title": "Software Engineer, Data Platform",
+      "location": "United States",
+      "start": "2024-02",
+      "end": "2026-01",
+      "bullets": [
+        "Built cross-border e-commerce data pipelines connecting Amazon Seller Central, Shopify, ERP, and tariff services using Python AsyncIO, FastAPI, PostgreSQL, Redis, Kafka, Elasticsearch, Docker, Jenkins, and AWS.",
+        "Fetched and cleansed 500k+ daily orders, reducing sync latency from 15 minutes to 30 seconds; delivered 99.9% omni-channel inventory consistency and sub-50 ms tariff lookup responses."
+      ]
+    },
+    {
+      "company": "Huawei Technologies",
+      "title": "Software Engineer, SPU Development Dept",
+      "location": "China",
+      "start": "2023-04",
+      "end": "2024-02",
+      "bullets": [
+        "Built SPU software for NE40E-X8A / NE40E-X16A routers in C, including traffic statistics and NetStream monitoring features.",
+        "Developed Python CPU heartbeat tools for hardware communication validation and closed 50+ functional C bugs across flow logs, header processing, URL parsing, security, resource optimization, and packet capture."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Agent-native research platform",
+      "role": "AI Agent & Backend Platform Engineer",
+      "stack": [
+        "TypeScript",
+        "Node.js",
+        "NestJS",
+        "Zod",
+        "PostgreSQL",
+        "Redis",
+        "MCP-style tools",
+        "OpenAPI",
+        "OAuth",
+        "Stripe",
+        "Nginx",
+        "AWS"
+      ],
+      "bullets": [
+        "Built tool-use workflows for planning, recruitment, interviews, quantitative surveys, billing, and reports.",
+        "Drove structured tool payloads, developer portal readiness, CLI/installer paths, and production API contracts.",
+        "Use only redacted public-safe descriptions in outbound job materials."
+      ],
+      "links": [],
+      "stealth_use": "redacted_only"
+    },
+    {
+      "name": "Report integrity and evaluation system",
+      "role": "Backend / AI Systems Owner",
+      "stack": [
+        "TypeScript",
+        "PostgreSQL",
+        "Redis",
+        "LLM prompts",
+        "HTML preservation",
+        "E2E QA"
+      ],
+      "bullets": [
+        "Hardened generated-report correctness through transcript eligibility, screener/chat-corpus QA, locked-fact guards, regenerated-default persistence, and editorial HTML preservation.",
+        "Useful for roles needing reliable AI workflow output, evaluation gates, and production correctness under messy inputs."
+      ],
+      "links": [],
+      "stealth_use": "redacted_only"
+    },
+    {
+      "name": "Quant trading agent stack",
+      "role": "Co-Engineer",
+      "stack": [
+        "Python",
+        "IBKR API",
+        "SQLite",
+        "S3",
+        "Parquet",
+        "NumPy",
+        "systemd",
+        "cron",
+        "AWS"
+      ],
+      "bullets": [
+        "Built scanner to factor filter to bracket execution to data warehouse to researcher dashboard path.",
+        "Improved live execution reliability, cache-hit latency, data archiving, and operational visibility."
+      ],
+      "links": []
+    },
+    {
+      "name": "GetDateLove",
+      "role": "Founder & Full-Stack Engineer",
+      "stack": [
+        "FastAPI",
+        "Redis",
+        "PostgreSQL",
+        "WebSocket",
+        "Vanilla JS",
+        "AWS",
+        "Nginx",
+        "CloudFront",
+        "PayPal"
+      ],
+      "bullets": [
+        "Solo-built real-time dating PWA with payments, GDPR/security controls, messaging, voice notes, and deploy safety.",
+        "Shows founder-level product ownership, backend systems, security, and frontend maintainability."
+      ],
+      "links": []
+    }
+  ],
+  "skills": {
+    "tier1": [
+      "AI agent infrastructure",
+      "MCP/tool-use systems",
+      "Backend platform engineering",
+      "TypeScript/Node.js",
+      "Python AsyncIO",
+      "API contracts",
+      "Auth/OAuth",
+      "Billing/idempotency",
+      "PostgreSQL",
+      "Redis",
+      "AWS",
+      "Production reliability"
+    ],
+    "tier2": [
+      "NestJS",
+      "FastAPI",
+      "Prisma",
+      "Zod",
+      "OpenAPI",
+      "Kafka",
+      "NATS",
+      "WebSocket",
+      "React",
+      "UmiJS",
+      "Ant Design",
+      "TailwindCSS",
+      "Docker",
+      "Kubernetes",
+      "Terraform",
+      "systemd",
+      "Nginx",
+      "OpenTelemetry",
+      "Prometheus",
+      "Grafana",
+      "Sentry"
+    ],
+    "tools": [
+      "GitHub Actions",
+      "pnpm monorepos",
+      "Stripe",
+      "IBKR API",
+      "SQLite",
+      "Parquet",
+      "S3",
+      "Lambda",
+      "CloudFront",
+      "EKS",
+      "PM2",
+      "Pytest",
+      "mypy",
+      "Playwright"
+    ],
+    "languages": [
+      "TypeScript",
+      "JavaScript",
+      "Python",
+      "C",
+      "C++",
+      "SQL",
+      "Shell",
+      "Chinese",
+      "English"
+    ]
+  },
+  "education": [
+    {
+      "school": "Boston University",
+      "degree": "M.S. Mathematical Finance & FinTech",
+      "dates": "",
+      "notes": "GPA 3.78; Computational Methods, Stochastic Calculus, Algorithmic Trading"
+    },
+    {
+      "school": "The Ohio State University",
+      "degree": "B.A. Physics",
+      "dates": "",
+      "notes": "GPA 3.84; Dean's List; Merit Scholarship"
+    }
+  ],
+  "publications_oss": [
+    {
+      "title": "Public AI agent skill repository",
+      "link": "redacted_current_employer_public_repo_available_on_request",
+      "role": "Core builder; use only after stealth/privacy review",
+      "stealth_use": false
+    },
+    {
+      "title": "Public TypeScript CLI / npm distribution",
+      "link": "redacted_current_employer_public_package_available_on_request",
+      "role": "Core builder; use only after stealth/privacy review",
+      "stealth_use": false
+    },
+    {
+      "title": "GetDateLove product and engineering evidence",
+      "link": "available on request",
+      "role": "Founder and full-stack engineer",
+      "stealth_use": true
+    }
+  ],
+  "resume_paths": {
+    "default_1p_en": "/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf",
+    "high_priority_2p_en": "/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_2P_EN.pdf",
+    "ai_agent": "/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf",
+    "backend_platform": "/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf",
+    "general_swe": "/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf"
+  },
+  "resume_selection": {
+    "precedence": [
+      "ai_agent",
+      "backend_platform",
+      "general_swe"
+    ],
+    "ai_agent_keywords": [
+      "agent",
+      "llm",
+      "genai",
+      "generative ai",
+      "ai platform",
+      "ai infra",
+      "ml systems",
+      "machine learning",
+      "developer tools",
+      "devtools",
+      "mcp",
+      "tool-using",
+      "applied ai",
+      "ai engineer",
+      "ai/ml",
+      "a/i",
+      "ai infrastructure",
+      "ai developer platform",
+      "ai application",
+      "ai solutions engineer",
+      "inference",
+      "llms",
+      "ml engineer",
+      "ai-native",
+      "speech ai"
+    ],
+    "backend_platform_keywords": [
+      "backend",
+      "back-end",
+      "platform",
+      "api",
+      "infrastructure",
+      "infra",
+      "distributed systems",
+      "reliability",
+      "sre",
+      "cloud",
+      "data platform",
+      "services"
+    ],
+    "general_swe_keywords": [
+      "software engineer",
+      "full-stack",
+      "full stack",
+      "product engineer",
+      "generalist"
+    ]
+  }
+}

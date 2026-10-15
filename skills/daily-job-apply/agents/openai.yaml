@@ -1,0 +1,4 @@
+interface:
+  display_name: "Daily Job Apply"
+  short_description: "Stealth Bay Area AI job-search workflow"
+  default_prompt: "Run the daily-job-apply preflight, then prepare a stealth Bay Area AI infra job-search batch with dry-run review before any LinkedIn writes."

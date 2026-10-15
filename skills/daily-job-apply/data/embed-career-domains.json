@@ -1,0 +1,10 @@
+{
+  "description": "Mirror of ~/job-hunt/data/embed-career-domains.json — edit canonical file only.",
+  "canonical_path": "~/job-hunt/data/embed-career-domains.json",
+  "domains": [
+    "vectra.ai",
+    "zipline.com",
+    "sambanova.ai",
+    "careers."
+  ]
+}
