@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-06-21T06:19:38Z",
+  "updated_at": "2026-10-16T00:00:00Z",
   "platforms": {
     "ashby": {
       "platform_id": "ashby",
@@ -9,9 +9,10 @@
         "ashbyhq.com",
         "jobs.ashbyhq.com"
       ],
-      "adapter_script": "/Users/yupeng/Downloads/.omx/ashby_apply_applescript.py",
-      "adapter_type": "python-cdp",
-      "status": "production",
+      "adapter_script": null,
+      "adapter_type": "chrome-use",
+      "status": "playbook",
+      "playbook": "ATS-ASHBY.md",
       "field_mappings": {
         "radio": {
           "authorized to work|legally authorized|eligible to work|authorized to work in the country": "Yes",
@@ -28,9 +29,11 @@
           "city": "San Francisco, California"
         }
       },
-      "success_rate": 0.0,
-      "attempts": 501,
+      "success_rate": null,
+      "attempts": 0,
       "successes": 0,
+      "legacy_batch_attempts": 501,
+      "legacy_batch_note": "Retired CDP/Playwright batch engine (2026-10-15). Counts are failure-log rows, not outcomes.",
       "last_attempt": "2026-06-21",
       "blockers_seen": [
         "phone-required-no-active-number",
@@ -53,9 +56,10 @@
         "boards.greenhouse.io",
         "app.greenhouse.io"
       ],
-      "adapter_script": "/Users/yupeng/Downloads/.omx/greenhouse_playwright_apply.cjs",
-      "adapter_type": "node-playwright",
-      "status": "production",
+      "adapter_script": null,
+      "adapter_type": "chrome-use",
+      "status": "playbook",
+      "playbook": "ATS-GREENHOUSE.md",
       "url_resolver": "/Users/yupeng/.codex/skills/daily-job-apply/scripts/greenhouse_url_resolver.py",
       "field_mappings": {
         "radio": {
@@ -67,9 +71,11 @@
           "city": "San Francisco, California"
         }
       },
-      "success_rate": 0.0,
-      "attempts": 181,
+      "success_rate": null,
+      "attempts": 0,
       "successes": 0,
+      "legacy_batch_attempts": 181,
+      "legacy_batch_note": "Retired CDP/Playwright batch engine (2026-10-15). Counts are failure-log rows, not outcomes.",
       "last_attempt": "2026-06-21",
       "blockers_seen": [
         "phone-required-no-active-number",
@@ -93,13 +99,16 @@
         "lever.co",
         "jobs.lever.co"
       ],
-      "adapter_script": "/Users/yupeng/Downloads/.omx/lever_playwright_apply.cjs",
-      "adapter_type": "node-playwright",
-      "status": "production",
+      "adapter_script": null,
+      "adapter_type": "chrome-use",
+      "status": "playbook",
+      "playbook": "workflows/04-universal-web-apply.md",
       "field_mappings": {},
       "success_rate": null,
       "attempts": 0,
       "successes": 0,
+      "legacy_batch_attempts": 0,
+      "legacy_batch_note": "Retired CDP/Playwright batch engine (2026-10-15). Counts are failure-log rows, not outcomes.",
       "last_attempt": null,
       "blockers_seen": [],
       "notes": ""

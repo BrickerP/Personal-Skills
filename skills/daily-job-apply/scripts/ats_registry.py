@@ -4,11 +4,11 @@
 from __future__ import annotations
 
 import json
-import re
 from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 SKILL_DATA = Path(__file__).resolve().parent.parent / "data"
 REGISTRY_PATH = SKILL_DATA / "ats-adapter-registry.json"
@@ -47,14 +47,22 @@ def get_platform(registry: dict[str, Any], platform_id: str) -> dict[str, Any] |
     return (registry.get("platforms") or {}).get(platform_id)
 
 
+def _host(url: str) -> str:
+    value = (url or "").strip()
+    if "://" not in value:
+        value = "//" + value
+    try:
+        return (urlsplit(value).hostname or "").lower()
+    except ValueError:
+        return ""
+
+
 def domain_matches(url: str, domain_patterns: list[str]) -> bool:
-    host = re.sub(r"^https?://", "", (url or "").lower()).split("/")[0]
-    host = host.split(":")[0]
+    """True when the URL's host is a pattern or a subdomain of it; lookalike hosts do not match."""
+    host = _host(url)
     for pattern in domain_patterns:
         needle = pattern.lower().strip()
-        if not needle:
-            continue
-        if host == needle or host.endswith("." + needle) or needle in host:
+        if needle and host and (host == needle or host.endswith("." + needle)):
             return True
     return False
 
@@ -69,6 +77,14 @@ def find_platform_for_url(registry: dict[str, Any], url: str) -> tuple[str, dict
         if domain_matches(url, patterns):
             return platform_id, entry
     return best_id, best_entry
+
+
+def _count(value: Any) -> int:
+    """Stored counters may be null, missing or malformed; treat all of those as 0."""
+    try:
+        return max(int(value or 0), 0)
+    except (TypeError, ValueError, OverflowError):
+        return 0
 
 
 def update_platform_stats(
@@ -92,14 +108,16 @@ def update_platform_stats(
         "attempts": 0,
         "successes": 0,
     })
-    entry["last_attempt"] = _utc_now()[:10]
+    attempts = _count(entry.get("attempts"))
+    successes = _count(entry.get("successes"))
     if success is not None:
-        entry["attempts"] = int(entry.get("attempts") or 0) + 1
+        entry["last_attempt"] = _utc_now()[:10]
+        attempts += 1
         if success:
-            entry["successes"] = int(entry.get("successes") or 0) + 1
-        attempts = entry["attempts"] or 0
-        successes = entry["successes"] or 0
-        entry["success_rate"] = round(successes / attempts, 3) if attempts else None
+            successes += 1
+    entry["attempts"] = attempts
+    entry["successes"] = successes
+    entry["success_rate"] = round(min(successes / attempts, 1.0), 3) if attempts else None
     if blocker:
         seen = list(entry.get("blockers_seen") or [])
         if blocker not in seen:

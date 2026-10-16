@@ -1,8 +1,8 @@
-# End-of-run checklist | 跑批结束清单
+# End-of-run checklist | 投递结束清单
 
-Use after every external ATS batch (`run-next.sh`, round scripts, or manual-retry). **No conversation context required** — all paths are absolute.
+Use after every external ATS run (roles applied one by one with `chrome-use`, per `workflows/04-universal-web-apply.md`). **No conversation context required** — all paths are absolute.
 
-Related: `COLD-START.md` (preflight), `SKILL.md` (policy), `~/job-hunt/ROUND-MANIFEST.yaml` (active rounds).
+Related: `COLD-START.md` (preflight), `SKILL.md` (policy), `workflows/04-universal-web-apply.md` (per-role procedure, FROZEN answers, pre-submit gate).
 
 ---
 
@@ -11,19 +11,19 @@ Related: `COLD-START.md` (preflight), `SKILL.md` (policy), `~/job-hunt/ROUND-MAN
 Emit in the final response:
 
 - Date/time window (BJT)
-- Channels used (Ashby / Greenhouse / manual-retry)
+- Channels used (Ashby / Greenhouse / Lever / other)
 - Submitted / ManualFinish / Blocked / Skipped counts
 - Curated PDF hash check: pass / drift
 - `~/job-hunt/tracker.csv` rows touched
 - `~/job-hunt/application-ledger.md` rows appended
 - Vault archive paths (`applications/<channel>-batch-YYYY-MM-DD.md`) if Submitted
-- **Manual finish pages** — open tabs with company, role, URL, remaining action
+- **Manual finish pages** — tabs handed to the user with `keep`: company, role, URL, tab label (`chrome-use --session jobapply tab <label>` re-selects a kept tab from the same session), remaining action
 
 ---
 
 ## 2. ManualFinish retry CSV schema
 
-Used by `~/job-hunt/scripts/manual-retry-runner.py` and Ashby probe pools.
+Legacy format of the ManualFinish retry queue files. The CSV queue itself is retired: the old runner `runtime/manual/manual-retry-runner.py` (and any `~/job-hunt/scripts/` copy) is orphaned — it calls the retired `archive/2026-10-cdp-retired/adapters/ashby_apply_applescript.py` — so do not run it. The schema stays here so existing queue files can still be read.
 
 | Column | Required | Meaning |
 |--------|----------|---------|
@@ -41,34 +41,27 @@ Used by `~/job-hunt/scripts/manual-retry-runner.py` and Ashby probe pools.
 
 Example queue path: `~/job-hunt/candidate-pools/manual-retry-YYYYMMDD.csv`
 
-Run:
-
-```bash
-python3 ~/job-hunt/scripts/manual-retry-runner.py \
-  --queue ~/job-hunt/candidate-pools/manual-retry-YYYYMMDD.csv \
-  --allow-manual-retry
-```
+An existing file is only a candidate list: the agent applies its `auto_candidate` rows role by role (`workflows/04-universal-web-apply.md`). ManualFinish tabs are handed to the user with `keep` and stay open until the user closes them (see "ManualFinish handoff" in that workflow).
 
 ---
 
 ## 3. Greenhouse email verification chain
 
-**Batch runs**: precheck marks `skip-email-verification` — not a batch slot.
+Some Greenhouse boards ask for an email security code after Submit (`ATS-GREENHOUSE.md` §2.8). The agent solves it itself; hand off as `ManualFinish` (blocker `skip-email-verification`) only if Gmail cannot be read.
 
-**ManualFinish cleanup** (user explicitly requests or `manual` mode):
-
-1. Confirm application tab + `yplmicro@gmail.com` Gmail share the same CDP `windowId`.
-2. Read verification code from Gmail Inbox (`yplmicro@gmail.com` only).
-3. Enter code:
+1. The connected profile is the gate: every `profile:` line `chrome-use` prints (the first command of a new or restarted session) must read `Lu (Profile 2, yplmicro@gmail.com)` (`COLD-START.md` step 3). chrome-use exposes no per-tab window id, so **profile identity, not window identity, is the gate** — a Gmail tab in another Chrome profile is not acceptable.
+2. Read the code from the `yplmicro@gmail.com` Gmail Inbox only (sender `no-reply@us.greenhouse-mail.io`, subject `Security code for your application to <company>`). It is an 8-character alphanumeric code.
+3. Select the application tab and enter the code:
 
 ```bash
-node ~/Downloads/.omx/greenhouse_enter_security_code.cjs <target_id> <6-digit-code>
+chrome-use --session jobapply tab <label>        # re-select the application tab (refs belong to the active tab)
+chrome-use --session jobapply snapshot -i        # find the security-input-N cells
+chrome-use --session jobapply fill @eN <char>    # one character per security-input-N cell, in order
 ```
 
-4. Re-run `ats_pre_submit_check.cjs` on the target; submit only if `{"ok":true,...}`.
-5. On verified confirmation → tracker upsert + ledger + archive + close tab.
-
-`greenhouse_enter_security_code.cjs` handles split `security-input-N` fields and single security/code fields via CDP `Runtime.evaluate`.
+   Greenhouse splits the code into `security-input-1` … `security-input-N` on some boards and uses a single security/code field on others; a single field takes the whole code. If the submit button stays disabled after the last cell, set the cells the way `ATS-GREENHOUSE.md` §2.8 describes.
+4. The submit button enables after the last cell. Run the pre-submit gate (`workflows/04-universal-web-apply.md`, "Pre-submit gate"); submit only when `ok` is true.
+5. On verified confirmation → tracker upsert + ledger + archive + close tab (§4).
 
 ---
 
@@ -76,30 +69,35 @@ node ~/Downloads/.omx/greenhouse_enter_security_code.cjs <target_id> <6-digit-co
 
 After **verified** confirmation page or confirmation email:
 
-1. Upsert tracker + append ledger (see §5).
+1. Upsert tracker + append ledger (see §6).
 2. `job_archive.py emit` for non-LinkedIn channels.
-3. **Close** the application Chrome tab (adapters call `close_success_tab` / `cdp_close_target`).
+3. **Close** only your own application tab: `chrome-use --session jobapply tab close <label>`.
 
-Leave tabs **open** only for `ManualFinish` (CAPTCHA, SMS, anti-spam, unknown final step).
+Hand a tab to the user only for `ManualFinish` (CAPTCHA, SMS, anti-spam, unknown final step): select it (`chrome-use --session jobapply tab <label>`), then run a bare `chrome-use --session jobapply keep`. chrome-use reports a kept tab as left for the user and exempt from auto-close; it leaves the session and survives `close` and `session stop`. The user closes it, never the agent. Do not add `--as handoff` (fails on chrome-use 1.5.186). A ManualFinish tab that was not kept still belongs to the session, so `close`, `session stop` or the daemon's idle shutdown can take it away: keep it before moving on.
 
 ---
 
-## 5. Wrong-window cleanup
+## 5. Wrong-profile cleanup
 
-If `ats_pre_submit_check.cjs` returns `wrong-window`, `gmail-window-not-found`, or `cookiy-gmail-in-window`:
+The only identity gate is the `profile:` line `chrome-use` prints whenever a session starts or restarts (closing a session's last tab ends it, so this can recur mid-run); it must read `Lu (Profile 2, yplmicro@gmail.com)`. Every command that can start the session carries `--browser yplmicro@gmail.com`. If a line reads anything else (`wrong-profile`), **STOP the whole run**. It is a run-level stop, not a ledger row:
 
-1. **Do not submit.**
-2. Close the wrong-profile/wrong-window application tab copy.
-3. Re-open the JD/application URL from the verified yplmicro Gmail window (`Browser.getWindowForTarget` match).
-4. Re-fill or queue as `ManualFinish` if state was lost.
+1. **Do not fill or submit.**
+2. Close only the tabs this run opened: `chrome-use --session jobapply tab close <label>`.
+3. Fix the connection: `chrome-use browsers` must show `Lu` as CONNECTED.
+4. Report the stop. A new run re-opens the JD/application URL with `chrome-use --session jobapply --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"` so it lands under the connected profile.
 
-Never use `CDP.New` / bulk new-tab creation for application tabs (wrong profile risk).
+Keep **one** application tab in the session at a time (a tab handed over with `keep` has left the session and no longer counts). Do not bulk-create tabs — extra tabs are how a page ends up under a profile you are not watching.
 
 ---
 
 ## 6. Tracker upsert field mapping
 
-Canonical file: `~/job-hunt/tracker.csv`
+Canonical file: `~/job-hunt/tracker.csv` (it does not exist today; the empty shipped template is `state/tracker.csv`). The header shapes in use differ, so map the columns below **by name** and leave out any column the file's header lacks:
+
+- 10-column template (`state/tracker.csv`): `Date,Company,Role,JD_URL,Channel,Stage,Application_Submitted,Response_Status,Resume_Variant,Notes`
+- 13/14-column backups (`~/job-hunt/tracker.csv.bak.*`): the table below, with a trailing `Status` in the 14-column form
+
+Which header becomes canonical is still open. `job_dedupe_check.py` reads `Date`, `Company`, `Role`, `JD_URL`, `Application_Submitted`, `Response_Status` and `Notes` by name.
 
 | CSV column | Submitted example | ManualFinish example |
 |------------|-------------------|----------------------|
@@ -115,7 +113,9 @@ Canonical file: `~/job-hunt/tracker.csv`
 | `Response_Status` | `Submitted` / `DuplicateSubmitted` | `ManualFinish` / `Blocked` |
 | `Stage` | same as Response_Status | same |
 | `Last_Updated` | same as Date | same |
-| `Notes` | adapter note + `resume=<variant>` | blocker code + `resume=<variant>` |
+| `Notes` | note + `resume=<variant>` | blocker code + `resume=<variant>` |
+
+`DuplicateSubmitted` is the retired adapter's value for "already applied"; `job_dedupe_check.py` still honors it in old rows. New runs record an already-applied role as `Skipped` (`workflows/04-universal-web-apply.md`); the dedupe guard treats both as duplicates.
 
 **Upsert key**: normalized `JD_URL` — update existing row if URL matches, else append.
 
@@ -123,9 +123,10 @@ Canonical file: `~/job-hunt/tracker.csv`
 
 ```
 - YYYY-MM-DD HH:MM:SS CST | Submitted | Company - Role | <url> | <notes>
+- YYYY-MM-DD HH:MM:SS CST | ManualFinish | Company - Role | <url> | manual-finish-needed:<blocker>
 ```
 
-Escape `|` inside role titles.
+Keep a `|` on both sides of the status word: `job_dedupe_check.py` finds ManualFinish lines by `| ManualFinish |` and reads the blocker from the notes (`platform-anti-bot`, `phone-rejected` and CAPTCHA blockers then block the URL as a duplicate; `skip-email-verification`, `invalid-required-fields` and `unsupported-required:<label>` stay retryable). Escape `|` inside role titles.
 
 **Vault archive** (Submitted only, non-LinkedIn):
 

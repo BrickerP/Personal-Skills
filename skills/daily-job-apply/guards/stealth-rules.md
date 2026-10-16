@@ -14,7 +14,7 @@ This job search is stealth. The goal is Bay Area / Remote US AI infrastructure j
 
 ## Chrome rule
 
-For authenticated LinkedIn/profile/application work, use the user's real Chrome Debug session through `chrome-read-write` (`127.0.0.1:9222`). Do not rely on a sandbox browser for LinkedIn state, logged-in identity, applications, or profile writes.
+For authenticated LinkedIn/profile/application work, use `chrome-use`, which drives the user's real, already-logged-in Chrome (profile: `Lu` / `yplmicro@gmail.com`). Do not rely on a sandbox browser for LinkedIn state, logged-in identity, applications, or profile writes.
 
 ## LinkedIn privacy checklist
 

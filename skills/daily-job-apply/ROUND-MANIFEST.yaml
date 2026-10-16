@@ -1,5 +1,5 @@
-# Canonical active-round manifest for runtime/run-next.sh
-# Update this file when advancing Ashby/Greenhouse rounds.
+# ORPHANED since 2026-10-15: the batch engine this manifest drove is retired (runtime/run-next.sh is a stub that exits 2).
+# Kept only because runtime/read_manifest.py and the retired round runners still read it. Daily applying: workflows/04-universal-web-apply.md.
 
 ashby:
   active_round: 110

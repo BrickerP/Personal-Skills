@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build FULL portable zip: daily-job-apply + chrome-read-write + job-search-orchestrator
+# Build FULL portable zip: daily-job-apply + chrome-use + job-search-orchestrator
 set -euo pipefail
 
 DATE="${1:-20260617}"
@@ -11,13 +11,14 @@ rm -rf "$STAGING"
 mkdir -p "$STAGING/skills"
 
 SKILL_SRC="$HOME/.codex/skills/daily-job-apply"
-for skill in daily-job-apply chrome-read-write job-search-orchestrator; do
+for skill in daily-job-apply chrome-use job-search-orchestrator; do
   src="$HOME/.codex/skills/$skill"
   if [[ -d "$src" ]]; then
     rsync -a \
       --exclude '__pycache__' \
       --exclude '.DS_Store' \
       --exclude 'node_modules' \
+      --exclude '/archive' \
       --exclude '_migrate_layout.py' \
       --exclude '_fix_migrated.py' \
       --exclude '_repatch_*.py' \

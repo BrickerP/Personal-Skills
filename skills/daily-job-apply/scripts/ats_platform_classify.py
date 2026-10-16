@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Classify an application URL/page into a platform and adapter route."""
+"""Classify an application URL/page into a platform and apply route (adapter script or playbook)."""
 
 from __future__ import annotations
 
@@ -12,11 +12,22 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from ats_registry import find_platform_for_url, load_registry  # noqa: E402
+from ats_registry import domain_matches, find_platform_for_url, load_registry  # noqa: E402
 from greenhouse_url_resolver import resolve_greenhouse_url  # noqa: E402
 
 UNSUPPORTED_STATUSES = {"unsupported", "unsupported-direct"}
+# Applyable status -> registry field that must be non-empty for the platform to be applyable.
+APPLYABLE_STATUS_FIELDS = {"production": "adapter_script", "playbook": "playbook"}
 HARVEST_STATUSES = {"routable", "unsupported-direct", "needs-parse"}
+
+
+def _has_text(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _is_applyable(status: str, entry: dict | None) -> bool:
+    required = APPLYABLE_STATUS_FIELDS.get(status)
+    return bool(required) and _has_text((entry or {}).get(required))
 
 
 def harvest_status_from_route(route: dict) -> str:
@@ -29,12 +40,16 @@ def harvest_status_from_route(route: dict) -> str:
 
 
 def adapter_route_from_route(route: dict) -> str:
+    platform_id = route.get("platform_id") or "custom"
+    if not route.get("apply_allowed"):
+        return platform_id
     script = route.get("adapter_script")
     if script:
         return str(script)
-    platform_id = route.get("platform_id") or "custom"
     if platform_id == "greenhouse" and route.get("board") and route.get("job_id"):
         return f"greenhouse:{route['board']}/{route['job_id']}"
+    if _has_text(route.get("playbook")):
+        return f"playbook:{platform_id}"
     return platform_id
 
 
@@ -66,17 +81,19 @@ def classify_url(url: str, *, html: str | None = None, registry_path: Path | Non
             platform_id = html_guess
             entry = registry.get("platforms", {}).get(platform_id)
 
-    if "greenhouse.io" in (url or "").lower():
+    if domain_matches(url, ["greenhouse.io"]):
         platform_id = "greenhouse"
         entry = registry.get("platforms", {}).get("greenhouse")
 
     status = (entry or {}).get("status") or "experimental"
     adapter_script = (entry or {}).get("adapter_script")
+    playbook = (entry or {}).get("playbook")
     route = {
         "platform_id": platform_id,
         "status": status,
         "adapter_script": adapter_script,
-        "apply_allowed": status == "production" and bool(adapter_script),
+        "playbook": playbook,
+        "apply_allowed": _is_applyable(status, entry),
         "skip_reason": None,
         "resolved_url": url,
         "board": "",
@@ -97,7 +114,7 @@ def classify_url(url: str, *, html: str | None = None, registry_path: Path | Non
             route["resolved_url"] = gh.canonical_url
             route["board"] = gh.board
             route["job_id"] = gh.job_id
-        elif status == "production":
+        elif status in APPLYABLE_STATUS_FIELDS:
             route["apply_allowed"] = False
             route["skip_reason"] = gh.error or "greenhouse-unresolved"
 

@@ -1,26 +1,30 @@
 ---
 name: daily-job-apply
-description: Use when the user wants a stealth daily workflow for US/Bay Area AI Infra, ML Systems, AI Platform, agent infrastructure, backend AI platform, or developer-tools job search. Covers resume/profile context, chrome-read-write LinkedIn preparation, referrals, Easy Apply batches, weekly LinkedIn maintenance, privacy guardrails, templates, and tracker updates.
+description: Use when the user wants a stealth daily workflow for US/Bay Area AI Infra, ML Systems, AI Platform, agent infrastructure, backend AI platform, or developer-tools job search. Covers resume/profile context, chrome-use LinkedIn preparation, referrals, Easy Apply batches, weekly LinkedIn maintenance, privacy guardrails, templates, and tracker updates.
 ---
 
 # Daily Job Apply
 
-Run a stealth, Bay Area-focused AI infrastructure job-search workflow for Yupeng Lu. This is the top-level workflow skill; use `linkedin-application-agent` only as the mechanical LinkedIn Easy Apply subroutine.
+Run a stealth, Bay Area-focused AI infrastructure job-search workflow for Yupeng Lu. This is the top-level workflow skill; `linkedin-application-agent` (the mechanical LinkedIn Easy Apply subroutine) is frozen and not runnable since 2026-10-15.
 
 ## Doc index
 
 | Doc / path | Role |
 |------------|------|
-| [COLD-START.md](COLD-START.md) | Fixed agent startup: PDF hash → Chrome Debug → Gmail `windowId` → `runtime/run-next.sh` |
-| [END-OF-RUN.md](END-OF-RUN.md) | Post-run: tracker/ledger, ManualFinish CSV, close Submitted tabs, GH verification chain |
+| [COLD-START.md](COLD-START.md) | Fixed agent startup: PDF hash → chrome-use profile check → `workflows/04-universal-web-apply.md` |
+| [END-OF-RUN.md](END-OF-RUN.md) | Post-run: report, Greenhouse email-code flow, close Submitted tabs, wrong-profile cleanup, tracker/ledger/archive mapping |
 | [INSTALL.md](INSTALL.md) | Fresh install + migration from old `~/job-hunt` / `~/.omx` layout |
 | [README-FOR-FRIENDS.md](README-FOR-FRIENDS.md) | 3-step friend onboarding for FULL zip |
-| [ATS-EVOLUTION.md](ATS-EVOLUTION.md) | Adapter registry, harvest/batch evolution loop |
-| [ROUND-MANIFEST.yaml](ROUND-MANIFEST.yaml) | Active Ashby/GH round scripts + saturation threshold for `run-next.sh` |
-| `adapters/` | Ashby/Greenhouse apply scripts (was `~/Downloads/.omx`) |
-| `runtime/` | `run-next.sh`, greenhouse/ashby/manual round runners |
+| [ATS-EVOLUTION.md](ATS-EVOLUTION.md) | Adapter/playbook registry, harvest and evolution loop |
+| [workflows/04-universal-web-apply.md](workflows/04-universal-web-apply.md) | Per-role chrome-use procedure for external ATS + the **FROZEN standard answers** (single source of truth for identity, phone, location, work authorization, years, education, AI usage) |
+| `ATS-GREENHOUSE.md` / `ATS-ASHBY.md` / `ATS-BLOCKERS.md` | Platform playbooks and how to read the old blocker log (Lever has no playbook: workflow 04 only) |
+| `scripts/ats_pre_submit_gate.js` | Pre-submit gate: `chrome-use eval --stdin` right before the final Submit |
+| `archive/2026-10-cdp-retired/` | Retired CDP / Playwright / AppleScript engine, reference only |
+| [ROUND-MANIFEST.yaml](ROUND-MANIFEST.yaml) | **Orphaned**: batch rounds of the retired engine |
+| `adapters/` | Sourcing helpers and **orphaned** batch runners (they call the archived adapters) |
+| `runtime/` | Path helpers; `run-next.sh` is a retirement stub (exits 2); the round runners are **orphaned** |
 | `data/blocked-companies.json` | Company keys hard-blocked by `job_dedupe_check.py` |
-| `data/greenhouse-skip-boards.json` / `data/gh-priority-boards.json` | Greenhouse round board filters |
+| `data/gh-skip-boards.json` / `data/gh-priority-boards.json` | Greenhouse board skip / priority lists (reference for the agent) |
 | `data/ashby-skip-slugs.json` | Ashby slug skip list |
 | `data/embed-career-domains.json` | GH embed career-site URL filter |
 | `data/profile.json.example` | Template profile; copy to `data/profile.json` |
@@ -32,10 +36,10 @@ Run a stealth, Bay Area-focused AI infrastructure job-search workflow for Yupeng
 
 **No conversation context required.** Fresh agents: read [COLD-START.md](COLD-START.md) only — do not depend on chat history.
 
-1. `COLD-START.md` — hash → Chrome Debug → Gmail `windowId` → `runtime/run-next.sh`
-2. `ROUND-MANIFEST.yaml` — active round scripts (not hardcoded in agents)
+1. `COLD-START.md` — PDF hash → chrome-use profile check
+2. `workflows/04-universal-web-apply.md` — per-role procedure and the FROZEN standard answers (single source of truth)
 3. `data/*.json` — blocked companies, GH skip boards, embed domains, Ashby skip slugs
-4. `END-OF-RUN.md` — post-batch tracker/ledger/archive/tab cleanup
+4. `END-OF-RUN.md` — post-run tracker/ledger/archive/tab cleanup
 
 User says **apply / go / 投递** → real submit (no dry-run) after preflight passes.
 
@@ -44,19 +48,20 @@ User says **apply / go / 投递** → real submit (no dry-run) after preflight p
 - Target strategy: broad high-volume funnel across US/Bay Area/Remote software roles. Do not over-filter for precision; include general Backend / Full-stack / Platform / Infra / ML / AI roles. Mandatory seed lane every run: include the most relevant Agent / AI Infra / ML Systems roles first.
 - Per-company cap: never submit more than 20 applications to the same company across all time. `Speechify` is hard-blocked because the historical tracker already has far more than the cap. Treat `company-blocked` and `company-cap-reached` from the dedupe guard as hard stops.
 - Email (resume header AND form fields): `yplmicro@gmail.com`. Never use a company email. If multiple Gmail tabs/accounts are open, identify by visible title/account text and use only the `yplmicro@gmail.com` mailbox for verification codes and job-search email. Never read/use `yupeng@cookiy.com` for job applications. `yplmicro@outlook.com` exists but is NOT the active job-search address — gmail is the source of truth.
-- Phone: prefer email. The user's US number `+1-510-944-5985` is currently **not active** — do NOT submit it on applications. China `+86` numbers must never appear on US applications. If a phone field is mandatory and not skip-able, flag the role as `ManualFinish` with blocker `phone-required-no-active-number`; do not auto-fill with an unreachable number.
+- Phone: the US number is filled into every phone field, optional or required (decision 2026-10-15; temporary). It lives only in `~/.config/daily-job-apply/env` as `JOB_APPLY_PHONE`; expand the variable in the shell and never type, print or commit the digits. The China number (`JOB_APPLY_PHONE_CN`) is never entered on a US application and the retired `+1-510` number is never used again. A form that rejects the US number or demands `+86` → `ManualFinish` with blocker `phone-rejected`. SMS-consent checkbox → No; an SMS/phone **verification** step → `ManualFinish`. Details: `workflows/04-universal-web-apply.md` → FROZEN → Phone.
 - Work authorization string for resume / form fields: `US Permanent Resident — No sponsorship required, now or in the future`.
 - Resume location string: `San Francisco Bay Area`. **Do NOT add "relocating from Beijing"** in resume header or in application form free-text fields (privacy decision; the curated PDFs deliberately omit it). Only mention current physical location when a recruiter directly asks.
 - LinkedIn account: verify live; expected current profile is `https://www.linkedin.com/in/yupeng-lu-845a0b411/`. Source of truth is `data/profile.json`; do not infer the current URL from historical batch logs.
-- Use the real Chrome Debug session via `chrome-read-write` only for authenticated LinkedIn pages. Do not substitute sandbox browser state for LinkedIn/account-sensitive checks.
+- Use `chrome-use` against the user's real, already-logged-in Chrome only for authenticated LinkedIn pages. Do not substitute sandbox browser state for LinkedIn/account-sensitive checks.
 - LinkedIn application freeze (2026-06-03): until the user explicitly says the LinkedIn review/checkpoint is resolved, do not use LinkedIn Easy Apply, LinkedIn external-apply launch flows, LinkedIn profile edits, LinkedIn saves, LinkedIn messages, or LinkedIn recruiter actions. You may only read existing LinkedIn status if the user asks.
-- Chrome account isolation: all job-application tabs must be in the same Chrome Debug window as the visible `Inbox ... yplmicro@gmail.com ... Gmail` tab. Before any ATS write or final submit, get `Browser.getWindowForTarget` for both the candidate tab and the Gmail tab and require identical `windowId`. Never submit from a window that also contains `yupeng@cookiy.com` Gmail as the only visible Gmail account.
-- External ATS safety mode: do not use `CDP.New` or bulk new-tab creation for application tabs because Chrome can place tabs into the wrong profile/window. Reuse or open tabs from the verified yplmicro window, then re-check `windowId`.
+- Browser channel: all browser work runs through `chrome-use`, which drives the user's real, already-logged-in Chrome (profile: `Lu` / `yplmicro@gmail.com`) and connects to the running Chrome by itself.
+- Chrome account isolation: every application tab must live in the connected profile `Lu` / `yplmicro@gmail.com`. Any chrome-use command that starts or restarts a session prints a `profile:` line (closing a session's last tab ends it, so this recurs mid-run); it must read `Lu (Profile 2, yplmicro@gmail.com)`, otherwise STOP (`wrong-profile`, `END-OF-RUN.md` §5). Open application tabs only with `chrome-use --session jobapply --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"`, confirm them with `tab list --full`, and keep a `yplmicro@gmail.com` Gmail tab available for verification codes. Never submit from any other profile.
+- External ATS safety mode: do not bulk-create application tabs. Open one at a time in the `jobapply` session, then re-check `chrome-use --session jobapply tab list --full`.
 - Anti-bot posture: do not run high-speed script-only upload/fill/submit loops on Lever, Ashby, Greenhouse, Workday, or custom ATS pages. Use one page at a time, insert human-scale waits between upload/fill/final submit, read back required-field validity and page text, and stop on the first spam, CAPTCHA, verification, or unusual challenge signal. Do not retry the same final submit after an anti-bot warning.
 - Resume selection default (path is absolute, curated, **never regenerated by this skill**):
   - Use `/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf` for outbound English applications unless the user explicitly asks for a different generated variant.
   - Use `/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_2P_EN.pdf` only for explicit high-priority, referral, or manual-review applications where a denser two-page resume is worth the extra length.
-  - The older automation aliases `Resume_YupengLu_AI_Agent_Infra.pdf`, `Resume_YupengLu_Backend_Platform.pdf`, and `Resume_YupengLu_General_SWE.pdf` may be absent. Current ATS runners must resolve those legacy buckets to the 1P English AI Agent Engineer PDF instead of failing or regenerating PDFs.
+  - The older automation aliases `Resume_YupengLu_AI_Agent_Infra.pdf`, `Resume_YupengLu_Backend_Platform.pdf`, and `Resume_YupengLu_General_SWE.pdf` may be absent. Resolve those legacy buckets to the 1P English AI Agent Engineer PDF instead of failing or regenerating PDFs.
   - If future variants are restored, prefer the most specific bucket in this order: AI Agent, Backend Platform, General SWE. Do not let broad "General SWE" win when the title/JD has AI/ML/LLM/agent signals.
 
 ## Curated PDF integrity (HARD RULE)
@@ -93,14 +98,13 @@ If a hash differs from `pdf-hashes.txt`:
 
 1. Read `guards/stealth-rules.md`.
 2. Check Beijing time. If current BJT is 09:00–19:00, LinkedIn is read-only: no profile edits, sends, follows, connects, saves, submits, Open-to-Work changes, or application finalization.
-3. Verify Chrome Debug is reachable and the intended LinkedIn account is open/logged in:
+3. Verify chrome-use is connected to the real Chrome and the intended LinkedIn account is open/logged in:
    ```bash
-   ~/.codex/skills/daily-job-apply/bin/chrome-debug.sh
-   curl -s http://127.0.0.1:9222/json/version | head -c 120
-   SKILL=~/.codex/skills/chrome-read-write
-   "$SKILL/scripts/chrome_tabs.sh" linkedin.com
+   chrome-use browsers
+   chrome-use tab list --full
    ```
-4. Verify the yplmicro Chrome window before any non-LinkedIn ATS write:
+   Browser work uses `chrome-use`, which drives the user's real, already-logged-in Chrome (profile: `Lu` / `yplmicro@gmail.com`).
+4. Verify the yplmicro Chrome profile before any non-LinkedIn ATS write:
    - Before opening, filling, uploading, or submitting any ATS/company role, run the duplicate guard:
      ```bash
      python3 ~/.codex/skills/daily-job-apply/scripts/job_dedupe_check.py \
@@ -110,14 +114,14 @@ If a hash differs from `pdf-hashes.txt`:
        --company-cap 20
      ```
      Exit code `20` / `duplicate-url`, `duplicate-role`, or `company-cap-reached` is a hard stop: do not reopen, refill, or resubmit the role. If the JSON reports same-company submitted matches under the cap, continue only when the URL is different and the role is intentionally distinct.
-   - Find the target whose title contains `Inbox` and `yplmicro@gmail.com`.
-   - For every application tab, call CDP `Browser.getWindowForTarget` and require the same `windowId` as that Gmail target before filling or submitting.
-   - If the application tab is in the wrong window/profile, move by reopening the URL from the verified yplmicro window and close the wrong copy before continuing.
+   - Check the `profile:` line whenever the `jobapply` session prints one (its first command, and again after the session ended because its last tab closed): it must read `Lu (Profile 2, yplmicro@gmail.com)`. Anything else = STOP (`wrong-profile`).
+   - Open every application tab with `chrome-use --session jobapply --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"` and confirm it with `tab list --full` before filling or submitting.
+   - If an application page is open outside the `jobapply` session, reopen the URL with `tab new` in the session. Never close a tab you did not open.
    - Immediately before final submit, run:
      ```bash
-     /Users/yupeng/.codex/skills/daily-job-apply/scripts/ats_pre_submit_check.cjs <target_id>
+     chrome-use --session jobapply eval --stdin < ~/.codex/skills/daily-job-apply/scripts/ats_pre_submit_gate.js
      ```
-     It must return `{"ok":true,...}`. Any non-zero exit means do not submit; record `ManualFinish` or `Blocked` from the reported code.
+     The output starts with an upgrade-notice line and an `eval @ <url>` line, then the JSON verdict. Submit only when `ok` is `true`. Any blocker means do not submit; record `ManualFinish` or `Blocked` from the reported code (`workflows/04-universal-web-apply.md` → Pre-submit gate).
 5. Before any LinkedIn profile write, confirm Settings → Visibility → `Share profile updates with your network` is OFF. During the 2026-06-03 LinkedIn freeze, skip LinkedIn writes entirely.
 6. Load `data/profile.json` and use only redacted fields for outbound resume, cover letter, LinkedIn messages, profile text, and application answers.
 7. Dry-run all private messages, applications, profile changes, and final submit/send/save actions by default. If the user explicitly says direct/go/no dry-run for the current run, proceed to final application submit/send steps except where strict stop conditions apply.
@@ -145,34 +149,26 @@ Before high-volume non-LinkedIn Greenhouse work, build a classified queue:
 python3 /Users/yupeng/.codex/skills/daily-job-apply/scripts/greenhouse_sourcing.py
 ```
 
-**Canonical apply scripts** (all under skill root):
+**Canonical layout** (all under skill root):
 
 | Layer | Path | Role |
 |-------|------|------|
-| Sourcing / guards | `scripts/` | Classifiers, dedupe, archive, pre-submit checks |
-| Apply adapters | `adapters/` | `ashby_apply_applescript.py`, `greenhouse_playwright_apply.cjs`, batch runners |
-| Round orchestration | `runtime/` | `greenhouse/run_round18.py`, `ashby/round110-batch.sh`, `manual/manual-retry-runner.py` |
+| Sourcing / guards | `scripts/` | Classifiers, dedupe, archive, `ats_pre_submit_gate.js` |
+| Applying | `workflows/04-universal-web-apply.md`, `ATS-*.md` | The agent applies role by role with `chrome-use`; there is no apply script |
+| Retired engine | `archive/2026-10-cdp-retired/` | Reference only |
 
-**Single entry command** (reads `ROUND-MANIFEST.yaml`):
-
-```bash
-~/.codex/skills/daily-job-apply/runtime/run-next.sh          # auto
-~/.codex/skills/daily-job-apply/runtime/run-next.sh gh       # Greenhouse
-~/.codex/skills/daily-job-apply/runtime/run-next.sh ashby    # Ashby
-~/.codex/skills/daily-job-apply/runtime/run-next.sh manual   # ManualFinish retry
-```
-
-Legacy wrapper: `~/job-hunt/run-next.sh` forwards to the same entry point.
+There is no single entry command any more: `runtime/run-next.sh` is a retirement stub (prints a notice, exits 2).
 
 Use only `status=auto_candidate` rows for agent-run final submissions. Treat
 `status=manual` rows as ManualFinish/review items unless the blocker is
-explicitly resolved. The classifier rejects mandatory phone, mandatory cover
-letter, explicit anti-AI/challenge prompts, already-known tracker URLs, and
-non-engineering titles before browser work begins. It also marks modern
-Greenhouse pages with any required React Select mirror as manual, because CDP
-can pass superficial HTML validity while the Greenhouse React state still
-rejects the submit. Do not final-submit those pages until the adapter can write
-real component state rather than only DOM input values.
+explicitly resolved. The classifier rejects mandatory cover letter, explicit
+anti-AI/challenge prompts, already-known tracker URLs, and non-engineering
+titles before browser work begins. A mandatory phone question is only a
+`phone-required` caution now, because the US number is always filled (FROZEN →
+Phone). It also marks modern Greenhouse pages with any required React Select
+mirror as manual, because filling only the DOM input leaves the React state
+empty and the submit is rejected. By hand, open the dropdown and pick the option
+(`pick @eN --option "<text>"`), then re-read the value (`ATS-GREENHOUSE.md`).
 
 For Lever official boards, build a broad candidate queue before browser work:
 
@@ -182,50 +178,34 @@ python3 /Users/yupeng/.codex/skills/daily-job-apply/scripts/lever_sourcing.py
 
 Lever rows are only sourcing candidates. Before opening/filling any row, still
 run `job_dedupe_check.py`, inspect the live form, and stop on verification,
-spam, CAPTCHA, mandatory phone, or unknown required questions.
+spam, CAPTCHA, a phone field that rejects the US number, or unknown required
+questions. Lever has no playbook: follow `workflows/04-universal-web-apply.md`.
 
-## External ATS batch playbooks
+## External ATS playbooks
 
-### Ashby (`round{N}-batch.sh`)
+The batch playbooks of the retired engine (`round{N}-batch.sh`, `runtime/greenhouse/run_round18.py`, `manual-retry-runner.py`, the Ashby probe-first gate) are **orphaned**: they call the archived adapters and must not be run. Platform knowledge now lives in:
 
-- Pattern: `bash ~/job-hunt/scripts/round110-batch.sh` (increment N as rounds evolve).
-- **Probe-first gate**: `ashby_form_probe_gate.py` + `round80_probe_first_gate.py` — only `auto_candidate` probe rows enter the apply pool; metadata-only fallback for probe-miss slugs.
-- **Preflight**: always run `--gh-global-rotate N` slice preflight before dict mine when GH fallback is enabled (see round110 header comments).
-- Apply adapter: `~/Downloads/.omx/ashby_apply_batch.py` with `--allow-manual-retry`.
-- ManualFinish cleanup: `python3 ~/job-hunt/scripts/manual-retry-runner.py --queue <csv> --allow-manual-retry`.
+- Greenhouse → `ATS-GREENHOUSE.md`
+- Ashby → `ATS-ASHBY.md`
+- How to read the old failure labels → `ATS-BLOCKERS.md`
+- Lever / Workday / custom forms → `workflows/04-universal-web-apply.md` (no playbook)
 
-### Ashby saturation playbook
+### Source order when Ashby is saturated
 
 When tracker `exclude_known` (unique submitted URLs) **> 1500**, dict-only Ashby slug mining yields diminishing returns. Default order:
 
-1. **Greenhouse** — `python3 ~/job-hunt/run_greenhouse_round18.py`
-2. **Lever** — `python3 ~/.codex/skills/daily-job-apply/scripts/lever_sourcing.py` then manual/batch apply
-3. **Ashby** — only when fresh slug mine > 0 after probe-first gate
+1. **Greenhouse** — `scripts/greenhouse_sourcing.py`
+2. **Lever** — `scripts/lever_sourcing.py`, then apply by hand
+3. **Ashby** — only when a fresh slug mine still returns rows
 
-`~/job-hunt/run-next.sh` implements this auto-route.
+### Greenhouse notes
 
-### Greenhouse (`run_greenhouse_round18.py` template)
+- **Embed skip** at sourcing: `adapters/greenhouse_embed_skip.py` drops embedded career sites (vectra.ai, zipline.com, sambanova.ai, `careers.*`); they time out.
+- **Email verification** (`security-input-*` fields) is agent-solvable: read the code from the yplmicro Gmail tab and enter it (`END-OF-RUN.md` §3). The batch precheck that skipped these roles (`skip-email-verification`) is gone.
 
-Round18 is the canonical GH batch runner:
+### ManualFinish
 
-- **Phone-optional API filter** before browser probe (`filter_phone_optional_sourced`).
-- **Per-board cap 2** ready rows (`MAX_READY_PER_BOARD`).
-- **Embed skip** at sourcing/precheck via `~/Downloads/.omx/greenhouse_embed_skip.py` (vectra.ai, zipline.com, sambanova.ai, careers.*).
-- **Security precheck**: `security-input-*` / email verification → `skip-email-verification` (ManualFinish; do not waste batch slot).
-- **`--batch-only`**: retry apply from existing ready CSV after network failure.
-- **Dynamic cap**: `min(max_attempts, ready_rows)`.
-
-Greenhouse **email verification = ManualFinish** unless user explicitly runs ManualFinish cleanup with Gmail + `greenhouse_enter_security_code.cjs`. Batch precheck skips these boards.
-
-### ManualFinish retry
-
-```bash
-python3 ~/job-hunt/scripts/manual-retry-runner.py \
-  --queue ~/job-hunt/candidate-pools/manual-retry-YYYYMMDD.csv \
-  --allow-manual-retry
-```
-
-Parses CSV with embedded commas in role titles; uses `ashby_apply_applescript.py` adapter.
+ManualFinish tabs are handed to the user with a bare `keep` (the tab leaves the `jobapply` session and stays open until the user closes it); print the handoff list in the terminal (`workflows/04-universal-web-apply.md` → ManualFinish handoff). The CSV queue and `manual-retry-runner.py` are retired.
 
 ## Target sourcing surfaces
 
@@ -282,26 +262,24 @@ Track these fields in `tracker.csv`, `application-ledger.md`, and final reports:
 - Channel: LinkedIn Easy Apply, LinkedIn external, Greenhouse, Lever, Ashby, Workday, company site, referral, HR/recruiter.
 - Resume variant: AI Agent Infra, Backend Platform, General SWE, or manual override.
 - Status: Submitted, ManualFinish, Blocked, Skipped, ReferralContacted, FollowUpDue, Interview, Rejected, Offer.
-- Blocker type: platform-anti-bot, account/platform-limit, stale-job, network/page-load, unsafe-question, login-required, manual-finish-needed, phone-required-no-active-number.
+- Blocker type: platform-anti-bot, phone-rejected, skip-email-verification, invalid-required-fields, unsupported-required, login-required, manual-finish-needed (ManualFinish: the form is prepared, the final step is blocked); stale-job, form-not-loaded, submit-button-not-found, resume-upload-missing, account/platform-limit, network/page-load, unsafe-question (Blocked: the page could not be prepared or the role is unsafe); wrong-profile (stops the whole run, not a row).
 - Follow-up date/window and next action.
 - Reply source: Gmail, LinkedIn, ATS email, recruiter DM.
 - Quality notes: JD fit, keywords missing, unusual required questions, compensation/range, location constraints.
 
 ## Manual-finish policy
 
-Email verification on **Greenhouse batch runs** is not a batch slot: precheck marks `skip-email-verification` when `security-input-*` fields appear. Queue those roles for ManualFinish cleanup (Gmail + `greenhouse_enter_security_code.cjs`) rather than burning batch attempts.
+Email verification codes are agent-solvable when the relevant mailbox is available/logged in (for this search, `yplmicro@gmail.com`). The agent should read Gmail, extract the code, enter it, and submit if all other fields are safe. The Greenhouse `security-input-*` flow is in `END-OF-RUN.md` §3.
 
-For non-batch / ManualFinish pages, email verification codes are agent-solvable when the relevant mailbox is available/logged in (for this search, `yplmicro@gmail.com`). The agent should read Gmail, extract the code, enter it, and submit if all other fields are safe.
-
-If a page is fully or mostly filled but final submit is blocked by visible CAPTCHA/hCaptcha, SMS/phone verification, graphical anti-bot challenge, mandatory phone-number field (US number inactive, +86 not allowed), or an unknown final confirmation step that cannot be safely resolved from the provided profile, do not close the page. Leave the Chrome tab open, record the role in `application-ledger.md` as `ManualFinish` with the appropriate blocker, and print the manual handoff directly in the terminal/final response: company, role, URL, Chrome target/tab if known, exact remaining human action, and whether fields appear filled. Do not maintain a separate manual-finish Markdown queue.
+If a page is fully or mostly filled but final submit is blocked by visible CAPTCHA/hCaptcha, SMS/phone verification, graphical anti-bot challenge, a phone field that rejects the US number or demands `+86` (`phone-rejected`), or an unknown final confirmation step that cannot be safely resolved from the provided profile, do not close the page. Hand the Chrome tab to the user with a bare `keep` (it leaves the session and stays open until the user closes it), record the role in `application-ledger.md` as `ManualFinish` in the `END-OF-RUN.md` §6 line format (blocker as `manual-finish-needed:<blocker>` in the notes), and print the manual handoff directly in the terminal/final response: company, role, URL, tab label if known, exact remaining human action, and whether fields appear filled. Do not maintain a separate manual-finish Markdown queue.
 
 ## Stop conditions and caps
 
-Stop immediately on visible CAPTCHA/hCaptcha, graphical bot-check, SMS/phone verification, missing Chrome Debug, unexpected account mismatch, current-company employee/contact risk, legally sensitive uncertainty, **curated PDF hash drift**, or any final action lacking user confirmation when the current run has not explicitly allowed direct submission. Do not stop merely for ordinary email verification or invisible reCAPTCHA token generation.
+Stop immediately on visible CAPTCHA/hCaptcha, graphical bot-check, SMS/phone verification, chrome-use not connected to the yplmicro profile, unexpected account mismatch, current-company employee/contact risk, legally sensitive uncertainty, **curated PDF hash drift**, or any final action lacking user confirmation when the current run has not explicitly allowed direct submission. Do not stop merely for ordinary email verification or invisible reCAPTCHA token generation.
 
-Stop immediately for the current platform and record `ManualFinish` when the page says any of: `possible spam`, `error verifying your application`, `verify your application`, `unusual traffic`, `automated`, `bot`, `too many attempts`, or equivalent. Do not retry the same submit in the same run; repeated retries are account-risk behavior.
+Stop immediately for the current platform and record `ManualFinish` (blocker `platform-anti-bot`) when the page says any of: `possible spam`, `error verifying your application`, `verify your application`, `unusual traffic`, `automated`, `bot`, `too many attempts`, or equivalent. Do not retry the same submit in the same run; repeated retries are account-risk behavior.
 
-The pre-submit checker is authoritative for external ATS pages. If it returns `wrong-window`, `gmail-window-not-found`, `danger-text`, or `invalid-required-fields`, do not click Submit. Fix only safe field omissions; never bypass `danger-text` in the same run.
+The pre-submit gate (`scripts/ats_pre_submit_gate.js`) is authoritative for external ATS pages. If it returns `ok: false` (`danger-text`, `invalid-required-fields`, `aria-invalid-fields`, `no-form-fields`), do not click Submit. Fix only safe field omissions; never bypass `danger-text` in the same run. A wrong `profile:` line stops the whole run (`wrong-profile`).
 
 Daily caps:
 - LinkedIn connection requests: 10/day.
@@ -315,7 +293,7 @@ External ATS cadence and caps:
 - Do not attempt 200 same-night submissions unless the user explicitly accepts the account/platform risk after seeing a safety warning. Prefer 20-40 high-confidence external submissions/night while LinkedIn is under review.
 - Use one active final-submit page at a time. Source/filtering can happen in parallel, but upload/fill/submit must be sequential and slow.
 - Leave 90-180 seconds between successful external ATS submissions on the same platform family, and longer after any verification warning.
-- Favor company-owned direct forms, recruiter email/referral, Simplify-compatible pages, and Greenhouse/Lever pages with optional phone and no challenge. Treat Ashby final submit as high-risk after one possible-spam warning unless completed manually.
+- Favor company-owned direct forms, recruiter email/referral, Simplify-compatible pages, and Greenhouse/Lever pages with no challenge. Treat Ashby final submit as high-risk after one possible-spam warning unless completed manually.
 
 Warn at 70% of any cap, and stop at 100%.
 
@@ -331,11 +309,11 @@ At the end of every run, report:
 - **Curated PDF hash check result**: pass / drift.
 - Tracker path and rows appended.
 - Markdown application ledger path and rows appended: `~/job-hunt/application-ledger.md`.
-- Blocks, review flags, failure classification (`skill-gap`, `platform-anti-bot`, `account/platform-limit`, `stale-job`, `network/page-load`, `unsafe-question`, `manual-finish-needed`, `phone-required-no-active-number`), manual-finish open tabs printed directly in terminal/final response, and next recommended step.
+- Blocks, review flags, failure classification (`skill-gap`, `platform-anti-bot`, `phone-rejected`, `skip-email-verification`, `invalid-required-fields`, `unsupported-required`, `login-required`, `stale-job`, `form-not-loaded`, `submit-button-not-found`, `resume-upload-missing`, `account/platform-limit`, `network/page-load`, `unsafe-question`, `manual-finish-needed`, `wrong-profile`), manual-finish tabs handed to the user printed directly in terminal/final response, and next recommended step.
 
 Then upsert `~/job-hunt/tracker.csv` for every company/role touched, and append to `~/job-hunt/application-ledger.md` as `timestamp | status | name | url` (escape `|` inside job names).
 
-When an application reaches a verified confirmation page or confirmation email, update tracker/ledger first, emit the Vault application archive row with `scripts/job_archive.py emit` for non-LinkedIn channels, then close that completed application tab. Leave tabs open only for `manual-finish-needed` pages.
+When an application reaches a verified confirmation page or confirmation email, update tracker/ledger first, emit the Vault application archive row with `scripts/job_archive.py emit` for non-LinkedIn channels, then close that completed application tab. Hand a tab to the user (bare `keep`) only for ManualFinish pages.
 
 Do not create or update `~/job-hunt/manual-finish.md`. Track delayed referral/recruiter replies as compact ledger rows such as `ReferralFollowUp | <contact> — <company> follow-up after <date/window> | <LinkedIn URL>`.
 

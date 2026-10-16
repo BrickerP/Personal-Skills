@@ -71,12 +71,7 @@ if not PDF_DIR:
 NODE_MODULES = ADAPTERS_DIR / "node_modules"
 NODE_PATH = _cfg("NODE_PATH", str(NODE_MODULES) if NODE_MODULES.is_dir() else "")
 
-CHROME_READ_WRITE_SKILL = Path(
-    _cfg(
-        "CHROME_READ_WRITE_SKILL",
-        str(Path.home() / ".codex" / "skills" / "chrome-read-write"),
-    )
-)
+CHROME_USE_BIN = _cfg("CHROME_USE_BIN", "chrome-use")
 
 
 def _tracker_has_data(path: Path) -> bool:

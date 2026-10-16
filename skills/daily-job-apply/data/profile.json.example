@@ -3,14 +3,19 @@
     "name": "Your Name",
     "email": "yplmicro@gmail.com",
     "phone": null,
+    "phone_note": "Keep real numbers out of tracked files: put JOB_APPLY_PHONE (E.164) in ~/.config/daily-job-apply/env (chmod 600).",
     "location": "San Francisco Bay Area",
     "linkedin": "https://www.linkedin.com/in/your-profile/",
     "github": [
       "https://github.com/yourhandle"
     ],
-    "work_authorization": "US Permanent Resident — No sponsorship required, now or in the future"
+    "work_authorization": "US Permanent Resident — No sponsorship required, now or in the future",
+    "professional_since": "YYYY-MM",
+    "years_of_experience_note": "Derive at fill time: floor of the full years since professional_since. Never round up."
   },
   "resume_paths": {
+    "default_1p_en": "/Users/yupeng/Documents/resumes/Resume_1P_EN.pdf",
+    "high_priority_2p_en": "/Users/yupeng/Documents/resumes/Resume_2P_EN.pdf",
     "ai_agent_1p_en": "/Users/yupeng/Documents/resumes/Resume_1P_EN.pdf",
     "ai_agent_2p_en": "/Users/yupeng/Documents/resumes/Resume_2P_EN.pdf",
     "default_en": "/Users/yupeng/Documents/resumes/Resume_1P_EN.pdf"

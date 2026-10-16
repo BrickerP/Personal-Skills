@@ -5,9 +5,12 @@ import json
 import re
 from pathlib import Path
 
+from job_archive import DEFAULT_APPLICATIONS as ARCHIVE_DIR, split_md_row
+
 
 TRACKER = Path.home() / "job-hunt" / "tracker.csv"
 LEDGER = Path.home() / "job-hunt" / "application-ledger.md"
+ARCHIVE_SUBMITTED_STATUSES = {"submitted", "duplicatesubmitted"}
 CANONICAL_BLOCKLIST = Path.home() / "job-hunt" / "data" / "blocked-companies.json"
 SKILL_BLOCKLIST = Path(__file__).resolve().parent.parent / "data" / "blocked-companies.json"
 
@@ -48,6 +51,39 @@ def match_text(match: dict) -> str:
     return json.dumps(match, ensure_ascii=False)
 
 
+def archive_submitted_rows(directory: Path) -> list[dict]:
+    """Submitted rows of the Vault application batch files (`job_archive.py emit` writes them).
+
+    Handles both layouts: `# | Status | Company | Role | JD_URL` and the older LinkedIn
+    `# | Status | Company | Role | Job ID | Link | Notes`. Other statuses prove nothing about a
+    submission, so they are ignored and the role stays retryable.
+    """
+    rows: list[dict] = []
+    if not directory.is_dir():
+        return rows
+    for path in sorted(directory.glob("*-batch-*.md")):
+        date = re.search(r"\d{4}-\d{2}-\d{2}", path.name)
+        for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+            if not line.lstrip().startswith("|"):
+                continue
+            cells = [cell.replace(r"\|", "|") for cell in split_md_row(line)]
+            if len(cells) < 5 or not re.fullmatch(r"\d+", cells[0]):
+                continue
+            if cells[1].casefold() not in ARCHIVE_SUBMITTED_STATUSES:
+                continue
+            url = next((cell for cell in cells[4:6] if re.match(r"https?://", cell)), "")
+            rows.append(
+                {
+                    "date": date.group(0) if date else "",
+                    "status": cells[1],
+                    "company": cells[2],
+                    "role": cells[3],
+                    "url": url,
+                }
+            )
+    return rows
+
+
 def is_retryable_non_submitted_duplicate(matches: list[dict]) -> bool:
     """Allow retry only when prior same-URL records prove no submission happened.
 
@@ -62,7 +98,7 @@ def is_retryable_non_submitted_duplicate(matches: list[dict]) -> bool:
         r"\|\s*Submitted\s*\||"
         r'"submitted"\s*:\s*true|'
         r'"status"\s*:\s*"(Submitted|DuplicateSubmitted)"|'
-        r"phone-required|platform-anti-bot|captcha|hcaptcha|turnstile|"
+        r"phone-required|phone-rejected|platform-anti-bot|captcha|hcaptcha|turnstile|"
         r"possible spam|verify your application|wrong-window|stale-job",
         re.I,
     )
@@ -144,6 +180,7 @@ def main() -> int:
                             "status": status,
                             "submitted": submitted,
                             "url": row.get("JD_URL", ""),
+                            "notes": row.get("Notes", ""),
                         }
                     )
                 if (
@@ -169,6 +206,22 @@ def main() -> int:
         for line in LEDGER.read_text(encoding="utf-8").splitlines():
             if target_url and target_url in norm_url(line):
                 exact_matches.append({"source": "ledger", "line": line[:500]})
+
+    # The archive mirrors the tracker, so count each submitted application once across both sources.
+    counted = {norm_url(match["url"]) for match in company_matches}
+    for row in archive_submitted_rows(ARCHIVE_DIR):
+        row_url = norm_url(row["url"])
+        row_company_key = company_key(row["company"])
+        row_role = norm_text(row["role"])
+        if row_url and row_url == target_url and not any(m["source"] == "archive" for m in exact_matches):
+            exact_matches.append({"source": "archive", "submitted": True, **row})
+        application = row_url or f"{row_company_key}|{row_role}"
+        if target_company_key and row_company_key == target_company_key and application not in counted:
+            counted.add(application)
+            company_submitted_count += 1
+            company_matches.append(
+                {"source": "archive", **row, "same_role": row_role == target_role}
+            )
 
     if exact_matches and is_retryable_non_submitted_duplicate(exact_matches):
         print(

@@ -17,7 +17,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-sys.path.insert(0, str(Path.home() / "Downloads" / ".omx"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "adapters"))
 from greenhouse_embed_skip import is_embed_career_site_url
 
 
@@ -318,7 +318,7 @@ def classify_questions(job: dict) -> dict:
         if required and any("select" in (field.get("type") or "") for field in fields):
             required_selects += 1
         if required and PHONE_RE.search(label):
-            blockers.append("phone-required-no-active-number")
+            cautions.append("phone-required")
         if required and COVER_RE.search(label):
             blockers.append("cover-letter-required")
         if required and CURRENT_EMPLOYER_REQUIRED_RE.search(label):

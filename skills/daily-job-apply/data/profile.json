@@ -3,16 +3,18 @@
     "name": "Yupeng Lu",
     "email": "yplmicro@gmail.com",
     "phone": null,
+    "phone_note": "Never stored in this tracked file (the repo is public). US number (temporary, user 2026-10-15) = $JOB_APPLY_PHONE; CN number = $JOB_APPLY_PHONE_CN; both live in ~/.config/daily-job-apply/env. Fill policy: workflows/04-universal-web-apply.md, FROZEN section.",
     "location": "San Francisco Bay Area",
     "linkedin": "https://www.linkedin.com/in/yupeng-lu-845a0b411/",
     "linkedin_note": "Current job-search LinkedIn profile URL; verify live tab before sending.",
     "github": [
-      "https://github.com/yupeng-dev",
       "https://github.com/BrickerP"
     ],
     "twitter": null,
     "website": null,
-    "work_authorization": "US Permanent Resident — No sponsorship required, now or in the future"
+    "work_authorization": "US Permanent Resident — No sponsorship required, now or in the future",
+    "professional_since": "2023-04",
+    "years_of_experience_note": "Derive at fill time: floor of the full years since professional_since (3 as of 2026-10). Never round up; skill-specific years never exceed the total. Rule: workflows/04-universal-web-apply.md, FROZEN section."
   },
   "positioning": {
     "target_geo": [
@@ -258,12 +260,16 @@
       "school": "Boston University",
       "degree": "M.S. Mathematical Finance & FinTech",
       "dates": "",
+      "end_year": 2023,
+      "dates_note": "Graduated early 2023 (user, 2026-10-15). Start year and exact end month are not recorded anywhere: a form that needs them is ManualFinish until the user supplies them.",
       "notes": "GPA 3.78; Computational Methods, Stochastic Calculus, Algorithmic Trading"
     },
     {
       "school": "The Ohio State University",
       "degree": "B.A. Physics",
       "dates": "",
+      "duration_years": 4,
+      "dates_note": "4-year program (user, 2026-10-15). Start and end years are not recorded anywhere: a form that needs them is ManualFinish until the user supplies them.",
       "notes": "GPA 3.84; Dean's List; Merit Scholarship"
     }
   ],
