@@ -1,4 +1,0 @@
-interface:
-  display_name: "Chrome Read Write"
-  short_description: "Operate Chrome tabs safely with read/write JavaScript"
-  default_prompt: "Use my real Chrome session to read the current page, inspect tabs, fill fields, click controls, or write text safely in a pinned window/tab."
