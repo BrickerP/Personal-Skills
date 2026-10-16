@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /* Conservative LinkedIn Easy Apply batch runner for Chrome Debug (:9222).
  * Requires the chrome-read-write skill's CDP dependency install.
+ * RETIRED 2026-10-15: the Debug Chrome profile, port 9222 and the chrome-read-write skill were
+ * removed, so this script cannot start. LinkedIn applications are frozen; no chrome-use port exists.
  */
 const fs = require('fs');
 const path = require('path');
