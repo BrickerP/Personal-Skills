@@ -36,12 +36,12 @@ cd skills/daily-job-apply/adapters && npm install
 - OMX 框架自带 skills（autopilot/ralph/ultrawork/team 等 26 个）不在本库 —— 由 `omx setup` 管理。
 - OpenCode 内置 skills（opencode/report/playwright 等）不在本库。
 
-## Skills 清单（32）
+## Skills 清单（33）
 
 **求职**：daily-job-apply · job-search-orchestrator · linkedin-application-agent · gh-resume-builder
 **生活/订阅**：dating-time · daily-read · ai-daily · fs-street
 **浏览器**：chrome-use · browser-use · chrome-read-write · browser-control
-**云/支付/运维**：cf-cli · aws-cli · stripe-cli-ops · codex-usage · codex-wallpaper
+**云/支付/运维**：cf-cli · aws-cli · stripe-cli-ops · codex-usage · codex-wallpaper · [grok-remote](skills/grok-remote/SKILL.md)
 **内容/资料**：obsidian · lark-history-exporter · gmail-ai-daily-ops · lavayou-author-lens
 **创作/前端**：creative · draw-something · astryx-frontend · imagegen
 **文档**：pdf · pdf-sanitize
