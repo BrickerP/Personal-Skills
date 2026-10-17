@@ -1,53 +1,21 @@
-# Stealth rules
+# Outbound content policy
 
-This job search is stealth. The goal is Bay Area / Remote US AI infrastructure job search while minimizing discovery by the current employer and current-employer network.
+**Stealth is retired — decision made by the user on 2026-10-18.**
+There is no longer any requirement to hide employer identities in outbound materials. The old regime (redacted employers, "VC-backed Voice AI Platform Startup" labels, BrickerP-only GitHub, BJT write windows) does not apply anymore.
 
-## Hard redlines
+## Current policy (2026-10-18)
 
-- Outbound resume, cover letters, recruiter messages, referral messages, LinkedIn fields, and application answers must not mention: Cookiy AI, internal project codenames, specific client names, revenue numbers, organization/person names, internal URLs, private repository names, or non-public metrics.
-- Technical work must be truthful but redacted. Prefer labels like `VC-backed Voice AI Platform Startup`, `AI research platform`, `agent-native workflow platform`, or `production AI platform` when an employer name is unnecessary.
-- Never connect with, follow, message, endorse, or profile-view-bomb current or former Cookiy AI employees.
-- Beijing time 09:00-19:00: LinkedIn is read-only. No writing, sending, saving, submitting, following, connecting, or profile editing.
-- Before any LinkedIn profile modification, confirm Settings -> Visibility -> `Share profile updates with your network` is OFF.
-- Every private message, application, profile change, Send, Submit, Save, Follow, Connect, or Open-to-Work change requires a dry-run and explicit user confirmation.
-- Stop immediately on CAPTCHA, bot checks, verification prompts, account mismatch, current-company discovery risk, or legally sensitive uncertainty.
+- **Real employer names are allowed** in resumes, cover letters, recruiter messages, referral messages, LinkedIn fields, and application answers. The canonical October-2026 CV openly names `Baidu — MeDo` (current) and `Cookiy AI` (past); outbound materials should match it.
+- **Both GitHub accounts are acceptable**: `https://github.com/yupeng-dev` (work identity) and `https://github.com/BrickerP` (personal). Application forms default to `BrickerP` unless the field is explicitly a work-identity field.
+- The old generic labels (`VC-backed Voice AI Platform Startup`, `production AI platform`, …) remain available as optional wording — no longer required.
+- The former "never connect with Cookiy employees" rule and the BJT 09:00–19:00 write-window restrictions were stealth-motivated and are retired with it. LinkedIn writes remain **frozen** for unrelated reasons — see `COLD-START.md` (LinkedIn freeze notice); that freeze is unchanged.
 
-## Chrome rule
+## What still applies (general hygiene, not stealth)
 
-For authenticated LinkedIn/profile/application work, use `chrome-use`, which drives the user's real, already-logged-in Chrome (profile: `Lu` / `yplmicro@gmail.com`). Do not rely on a sandbox browser for LinkedIn state, logged-in identity, applications, or profile writes.
+- Do not publish non-public internal specifics that carry real confidentiality risk: client/customer names where under NDA, internal project codenames, revenue/pricing/deal details, private org/person names, internal URLs, private repository names, tokens, or private customer data. When in doubt, generalize truthfully — describe the work accurately, drop the sensitive identifier.
+- Never use a company mailbox for job-search actions. `yplmicro@gmail.com` is the only application mailbox (company mailboxes such as `ycd@cookiy.com` / `yupeng@cookiy.com` are never used for applications).
+- Keep LinkedIn actions honest and rate-sane; the mechanical freeze and dry-run habits in `SKILL.md` / `COLD-START.md` still govern.
 
-## LinkedIn privacy checklist
+## History
 
-Check these before profile maintenance or application batches:
-
-1. Settings -> Visibility -> Share profile updates with your network: OFF.
-2. Settings -> Visibility -> Profile viewing options: Private Mode during research/profile views.
-3. Settings -> Visibility -> Who can see your connections: Only you.
-4. Settings -> Visibility -> Followers: restrict to connections only where available.
-5. Settings -> Visibility -> Notify connections when you're in the news: OFF.
-6. Settings -> Visibility -> Edit your public profile: no current-company-sensitive detail in public sections.
-7. Settings -> Data privacy -> Job seeking preferences -> Signal interest to recruiters at companies where you created job alerts: OFF unless explicitly approved.
-8. Settings -> Data privacy -> Job seeking preferences -> Share your profile when you click Apply: OFF or conservative; never share with current-company-linked entities.
-9. Open to Work: recruiter-only if enabled; exclude current company; never public photo frame.
-10. Ad/data personalization and partner visibility: keep conservative defaults; do not sync address books or expose contacts.
-
-## Redaction checklist
-
-Before anything leaves the machine, scan for:
-
-- Current employer legal name.
-- Product or project codenames.
-- Client/customer names.
-- Revenue, pricing, or deal details.
-- Internal org chart or person names.
-- Private repo names, branch names, internal URLs, screenshots, tokens, or environment values.
-- Private customer data, report content, transcripts, or interview responses.
-- Metrics that are not public, approved, or safely generalized.
-
-If found, replace with truthful high-level wording or stop for review.
-
-## Time-window rule
-
-- Preferred outbound LinkedIn write windows: Tue-Thu 06:00-10:00 Pacific Time, if outside BJT 09:00-19:00.
-- BJT 09:00-19:00 always overrides PT preference and makes LinkedIn read-only.
-- File preparation, local resume editing, tracker updates, and JD reading are allowed during BJT work hours if no LinkedIn write action occurs.
+- 2025 → 2026-10-18: stealth regime (hide current employer, redact work, minimize employer-network discovery). Retired; superseded by the open posture of the October-2026 canonical CV and the user's explicit decision.

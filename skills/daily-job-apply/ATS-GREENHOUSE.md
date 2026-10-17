@@ -163,12 +163,11 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 9. **Required demographics block submit** → use the decline family.
 10. **Required consent boxes block submit** → tick consent/privacy/GDPR/terms only, never marketing.
 11. **Phone comes from the env file** → `$JOB_APPLY_PHONE` (US) per FROZEN → Phone, filled with `fill --from-env` last, right before the gate (a later `snapshot -i` echoes the typed digits, so mask it as FROZEN → Phone says). A form that rejects it or demands +86 ⇒ ManualFinish (`phone-rejected`); never fall back to the CN or the retired `+1-510` number.
-12. **Education years are mostly unknown** → only the master's end year (`2023`) is recorded ⇒ ManualFinish where a start year or the bachelor's years are required.
+12. **Education years** → graduation years are recorded and confirmed (BU `2023`, OSU `2021`) and are filled wherever asked; any other date (start year/month) ⇒ ManualFinish (`education-date-required-unverified`).
 13. **`boards.` and `job-boards.` are the same job** → normalise or you will double-apply.
 14. **Board root 302s to the company site** → never infer the form location from a board root.
 15. **Anti-AI questions are traps** → `no ai-generated / if you're an AI tool / activation function / application challenge / do not use AI / human-written` ⇒ stop, do not answer.
-16. **Stealth naming** → current employer is always `VC-backed Voice AI Platform Startup`; never emit the real
-    employer or internal project names.
+16. **Company naming** → stealth retired 2026-10-18: the real employer may be named (`Baidu — MeDo` current; `Cookiy AI` past). The old label `VC-backed Voice AI Platform Startup` is optional wording only. Still avoid non-public internal specifics (client names under NDA, codenames, revenue details).
 17. **`--system-chrome` had a window guard** → the application tab had to share a window with the
     `yplmicro@gmail.com` Gmail tab. chrome-use has no window id; the equivalent gate is now
     "same connected profile" (see `END-OF-RUN.md` §3/§5).
@@ -194,8 +193,8 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 - Phone: the temporary US number is filled everywhere, from `~/.config/daily-job-apply/env`.
 - 2P resume trigger: the agent decides per role (user-flagged high-priority, referral, manual review ⇒ 2P; else 1P).
 - "Do you use AI tools": daily coding agents, human-verified; an employer that bans AI ⇒ ManualFinish.
-- GitHub: `BrickerP` only. Years: derived from `professional_since` (`3+` now). U.S.-person (EAR) wording answered.
-- Education: only the master's end year (`2023`) and the bachelor's 4-year length are known.
+- GitHub: `BrickerP` (default for forms); `yupeng-dev` may also be used (both on the canonical CV). Years: derived from `professional_since` (`3+` now). U.S.-person (EAR) wording answered.
+- Education: graduation years confirmed — BU `2023`, OSU `2021`; fill them. Start dates/months remain unrecorded.
 
 **Still open (need a human decision)**:
 

@@ -29,9 +29,8 @@
       "Agent Infrastructure Engineer"
     ],
     "current_company_public_label": "VC-backed Voice AI Platform Startup",
-    "stealth_mode": true,
+    "stealth_mode": false,
     "never_emit_in_outbound_materials": [
-      "current employer legal name",
       "internal project codenames",
       "client names",
       "revenue numbers",
@@ -277,13 +276,13 @@
     {
       "title": "Public AI agent skill repository",
       "link": "redacted_current_employer_public_repo_available_on_request",
-      "role": "Core builder; use only after stealth/privacy review",
+      "role": "Core builder; use only after privacy review",
       "stealth_use": false
     },
     {
       "title": "Public TypeScript CLI / npm distribution",
       "link": "redacted_current_employer_public_package_available_on_request",
-      "role": "Core builder; use only after stealth/privacy review",
+      "role": "Core builder; use only after privacy review",
       "stealth_use": false
     },
     {

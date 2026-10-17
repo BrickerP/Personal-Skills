@@ -30,7 +30,7 @@ cp ~/.codex/skills/daily-job-apply/data/profile.json.example \
 
 Optional env overrides: `~/.config/daily-job-apply/env` — see `INSTALL.md`. Your phone number goes only there (`JOB_APPLY_PHONE`), never in the repo.
 
-The standard application answers (identity, contact, location, work authorization, years, education, AI usage, stealth) live in the FROZEN section of `workflows/04-universal-web-apply.md`. The shipped values are the original author's — edit that section to match you before applying.
+The standard application answers (identity, contact, location, work authorization, years, education, AI usage) live in the FROZEN section of `workflows/04-universal-web-apply.md` (stealth retired 2026-10-18 — real names allowed). The shipped values are the original author's — edit that section to match you before applying.
 
 ### 3. Agent reads COLD-START.md, then applies
 

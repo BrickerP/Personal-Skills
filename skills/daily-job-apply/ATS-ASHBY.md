@@ -38,14 +38,14 @@ embedded card and land on the `/application` full page.
 | First Name / Last Name (label exactly) | Yupeng / Lu | `basics.name` split on space | Must match `^first name$` exactly — suffixed labels are missed |
 | Phone (`input[type=tel]`, `name*=phone`) | `$JOB_APPLY_PHONE` (US) | FROZEN → Phone; `~/.config/daily-job-apply/env` | Fill last, right before the gate, with `fill --from-env JOB_APPLY_PHONE` from the sourcing subshell (FROZEN → Phone); never type digits. Historically the top blocker label (323 log rows), but mostly a classifier artifact (`ATS-BLOCKERS.md` §3). Never the CN or the retired `+1-510` number. Form rejects it or demands +86 ⇒ ManualFinish |
 | LinkedIn Profile / URL | `https://www.linkedin.com/in/yupeng-lu-845a0b411/` | `basics.linkedin` | React StringField — must **Tab out / blur** or submit fails with `Missing entry for required field: LinkedIn Profile` |
-| Current Company / Most Recent Employer | `VC-backed Voice AI Platform Startup`, only when the field is optional or free text; a required or lookup-style company field ⇒ ManualFinish (§6.3) | FROZEN → Stealth; `positioning.current_company_public_label` | Stealth label, not the legal employer name. `input[name*="company" i]` is a broad match that writes into **any** input containing "company" |
+| Current Company / Most Recent Employer | `Baidu — MeDo` may be named (stealth retired 2026-10-18); the generic label `VC-backed Voice AI Platform Startup` remains optional wording. A required or lookup-style company field still needs the real name to match the CV ⇒ if unsure, ManualFinish (§6.3) | FROZEN → Company naming; `positioning.current_company_public_label` | Real employer allowed; the old stealth label is optional only. `input[name*="company" i]` is a broad match that writes into **any** input containing "company" |
 | Current Job Title / Role | AI Agent Engineer | `experience[0].title` | Fill only when the field is empty |
 | Current Location / Where are you currently located | `San Francisco Bay Area` (free text); autocomplete: type `San Francisco, CA`, click the match | FROZEN → Location | The retired adapter typed `San Francisco Bay Area, CA`, and its dropdown flow had to reach `San Francisco Bay Area, California, United States`. Granularity is still open (§6.2) |
 | Desired Location / Location for employment | `Remote, United States` | hardcoded | — |
 | Country of Residence / current country | `United States` | FROZEN → Location | — |
 | Passport Country / Nationality / Citizenship | **Not frozen ⇒ ManualFinish** | — | The retired adapter typed a value inferred from `positioning.target_geo` (`profile.json` has no country key). The user never confirmed it |
 | City, State | `San Francisco, California` | FROZEN → Location | Materialize-style "city/state String" was still blocked historically |
-| GitHub Username / Handle | `BrickerP` | FROZEN → Identity | `yupeng-dev` is the work identity: never enter it |
+| GitHub Username / Handle | `BrickerP` (default) | FROZEN → Identity | `yupeng-dev` (work identity) may also be used — both appear on the canonical CV |
 | Portfolio / GitHub URL / Website (`type=url`) | GitHub field: `https://github.com/BrickerP`. Website / Portfolio: blank unless required, then the same URL | FROZEN → Identity | The retired adapter put the GitHub URL into every `type=url` input |
 | How did you hear about us | `LinkedIn` | `HEAR_ABOUT_TEXT_DEFAULT` | Option variant searches in order: LinkedIn → Online → Other → Company careers page → Company website → Job board; fallback text `Company careers page` |
 | Work Authorization / Authorized to work | Yes; status dropdowns pick the Permanent-Resident family; the full `work_authorization` sentence is only for free text | FROZEN → Work authorization | Dropdown-value style (Citizen/Permanent Resident/Visa Holder) and Yes/No style are different DOM |
@@ -188,7 +188,7 @@ complementing the 20-submissions-per-company cap. **Role-level**: `\bAI Trainer\
 
 ### Resolved (the answers live in the FROZEN section of `workflows/04-universal-web-apply.md`)
 
-- **GitHub identity** → `BrickerP` only. `yupeng-dev` is the work identity and is never entered.
+- **GitHub identity** → `BrickerP` is the form default; `yupeng-dev` may also be used (both on the canonical CV).
 - **Years of experience** → derived from `professional_since` (2023-04): `3+` as of 2026-10, never `5+`.
 - **EAR / "U.S. person"** → only the 15 CFR 772.1 wording is Yes (citizen = No, active clearance = No). Any other
   export-licence / foreign-person / legal-status wording ⇒ ManualFinish; clearance-required and ITAR citizen-only
@@ -204,9 +204,7 @@ complementing the 20-submissions-per-company cap. **Role-level**: `\bAI Trainer\
    query (`San Francisco, CA`), but Materialize's city/state String still failed historically when a dropdown
    only accepts a city. Needs a live test, and the user's say-so on which city to claim. [Use the FROZEN value;
    a dropdown that offers neither ⇒ ManualFinish.]
-3. **Stealth wording.** `current_employer_ats` does not exist in `profile.json`, so Current Employer falls back to
-   the public label `VC-backed Voice AI Platform Startup`. Does Ashby accept a non-company value there? Decide
-   legal name vs label. [Use the label only for optional or text-only fields; otherwise ManualFinish.]
+3. ~~**Stealth wording.**~~ **Resolved 2026-10-18:** stealth retired — the real employer (`Baidu — MeDo`) may be used anywhere, including required/lookup company fields; match the CV. The generic label remains optional wording. [Fallback: if a lookup field rejects the real name, ManualFinish.]
 4. **Email verification is an uncovered path.** `verify your application` and `Sign in` matched **zero** times in
    the retired adapter — there is no evidence of an Ashby email-verification flow. If one appears, it is new
    territory (the Greenhouse flow in `END-OF-RUN.md` §3 is the nearest model). [Email codes are agent-solvable per

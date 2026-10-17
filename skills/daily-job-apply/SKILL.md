@@ -1,11 +1,11 @@
 ---
 name: daily-job-apply
-description: Use when the user wants a stealth daily workflow for US/Bay Area AI Infra, ML Systems, AI Platform, agent infrastructure, backend AI platform, or developer-tools job search. Covers resume/profile context, chrome-use LinkedIn preparation, referrals, Easy Apply batches, weekly LinkedIn maintenance, privacy guardrails, templates, and tracker updates.
+description: Use when the user wants a daily workflow for US/Bay Area AI Infra, ML Systems, AI Platform, agent infrastructure, backend AI platform, or developer-tools job search. Covers resume/profile context, chrome-use LinkedIn preparation, referrals, Easy Apply batches, weekly LinkedIn maintenance, privacy guardrails, templates, and tracker updates. (Stealth retired 2026-10-18 — real names allowed; see guards/stealth-rules.md.)
 ---
 
 # Daily Job Apply
 
-Run a stealth, Bay Area-focused AI infrastructure job-search workflow for Yupeng Lu. This is the top-level workflow skill; `linkedin-application-agent` (the mechanical LinkedIn Easy Apply subroutine) is frozen and not runnable since 2026-10-15.
+Run a Bay Area-focused AI infrastructure job-search workflow for Yupeng Lu. This is the top-level workflow skill; `linkedin-application-agent` (the mechanical LinkedIn Easy Apply subroutine) is frozen and not runnable since 2026-10-15.
 
 ## Doc index
 
@@ -97,7 +97,7 @@ If a hash differs from `pdf-hashes.txt`:
 ## Hard preflight before every run
 
 1. Read `guards/stealth-rules.md`.
-2. Check Beijing time. If current BJT is 09:00–19:00, LinkedIn is read-only: no profile edits, sends, follows, connects, saves, submits, Open-to-Work changes, or application finalization.
+2. ~~Check Beijing time; BJT 09:00–19:00 makes LinkedIn read-only.~~ **Retired 2026-10-18** with stealth. LinkedIn writes remain frozen for unrelated reasons (`COLD-START.md` LinkedIn freeze); no other time-window restriction applies.
 3. Verify chrome-use is connected to the real Chrome and the intended LinkedIn account is open/logged in:
    ```bash
    chrome-use browsers
@@ -322,4 +322,4 @@ Do not create or update `~/job-hunt/manual-finish.md`. Track delayed referral/re
 - Curated PDF directory: `/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/`
 - Curated PDF script: `/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/curated-script/build_resumes.py`
 - Mined source-of-truth: `/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/source-of-truth/resume_yupeng_{en,zh}.md`
-- The 3 PDFs share: 2-page Letter, ATS-friendly single-column, header email `yplmicro@gmail.com`, GitHub `BrickerP`, location `San Francisco Bay Area` (no Beijing mention), no phone number, contains live demo links (Quant dashboard + GetDateLove), Target Roles subtitle per variant, structured Skills section, embedded PDF metadata (title/subject/keywords) for ATS.
+- The 3 PDFs share: 2-page Letter, ATS-friendly single-column, header email `yplmicro@gmail.com`, GitHub accounts (`BrickerP` on older builds; `yupeng-dev` + `BrickerP` on the Oct-2026 build), location `San Francisco Bay Area`, no phone number, contains live demo links (Quant dashboard + GetDateLove), Target Roles subtitle per variant, structured Skills section, embedded PDF metadata (title/subject/keywords) for ATS.

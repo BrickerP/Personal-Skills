@@ -55,7 +55,7 @@ There is no batch command. `runtime/run-next.sh` is a retirement stub that exits
 
 ## LinkedIn freeze (2026-06-03)
 
-Until the user says LinkedIn review is resolved: **no** LinkedIn Easy Apply, profile edits, saves, or messages. External ATS (Ashby/Greenhouse/Lever) via `workflows/04-universal-web-apply.md` is OK outside BJT 09:00–19:00 write ban.
+Until the user says LinkedIn review is resolved: **no** LinkedIn Easy Apply, profile edits, saves, or messages. External ATS (Ashby/Greenhouse/Lever) via `workflows/04-universal-web-apply.md` — the former BJT 09:00–19:00 write ban was part of stealth and is **retired (2026-10-18)**; applications may run at any time.
 
 ## Canonical references（权威路径）
 

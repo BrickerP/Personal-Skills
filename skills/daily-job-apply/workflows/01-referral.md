@@ -4,7 +4,7 @@ Use for targeted Bay Area / Remote US AI infra roles when a company and role are
 
 ## Steps
 
-1. Preflight `guards/stealth-rules.md`; confirm BJT write window is allowed for any send/connect.
+1. Preflight `guards/stealth-rules.md` (current outbound policy — stealth retired 2026-10-18).
 2. Open the target company careers/JD page and capture the JD text.
 3. Identify 3-5 relevant employees: same role family, AI infra/platform/devtools/backend, not current-company current/former employees, not obvious close connections to current employer.
 4. Draft one <=80-word message from `templates/referral-message.md` using `data/profile.json`.

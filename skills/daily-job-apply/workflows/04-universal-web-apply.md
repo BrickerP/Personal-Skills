@@ -1,6 +1,6 @@
 # Channel 4: Universal web / official ATS workflow
 
-Use for external ATS applications: roles on Greenhouse, Lever and Ashby boards, company career pages, and external-apply links found through the LinkedIn harvest (discovery only). LinkedIn Easy Apply itself is frozen. Goal: high-volume broad-funnel applications across company career sites and ATS platforms while preserving truthful/stealth answers.
+Use for external ATS applications: roles on Greenhouse, Lever and Ashby boards, company career pages, and external-apply links found through the LinkedIn harvest (discovery only). LinkedIn Easy Apply itself is frozen. Goal: high-volume broad-funnel applications across company career sites and ATS platforms with truthful answers under the current outbound policy (`guards/stealth-rules.md`).
 
 **Driver**: the agent works one role at a time with `chrome-use`, in the connected `yplmicro@gmail.com` Chrome profile (`Lu`, Profile 2). There is no batch adapter: the CDP/Playwright engine was retired on 2026-10-15 and sits in `archive/2026-10-cdp-retired/` for reference only. Platform knowledge lives in `ATS-GREENHOUSE.md`, `ATS-ASHBY.md` and `ATS-BLOCKERS.md`.
 
@@ -45,7 +45,7 @@ Use one named session so refs, tabs and tab ownership stay together: `chrome-use
 8. **Record** in the tracker and ledger (`END-OF-RUN.md` §6) and, for `Submitted`, emit the archive row (below).
 9. **Close your own tab** with `tab close <label>` after a verified `Submitted`. A `ManualFinish` tab is handed to the user with `keep` instead (*ManualFinish handoff*) and never closed.
 
-## FROZEN standard answers (decided 2026-10-15)
+## FROZEN standard answers (decided 2026-10-15; updated 2026-10-18 — stealth retired, graduation years recorded, GitHub policy widened)
 
 Single source of truth for the items below. The `ATS-*.md` tables point here and must not contradict it. Anything not covered here stays in the platform playbook table or goes to `ManualFinish`. Change a row only on the user's say-so, and update the playbooks in the same edit.
 
@@ -56,7 +56,7 @@ Single source of truth for the items below. The `ATS-*.md` tables point here and
 | Name | `Yupeng Lu` (first `Yupeng`, last `Lu`, preferred `Yupeng`) |
 | Email | `yplmicro@gmail.com` |
 | LinkedIn | `basics.linkedin` in `data/profile.json` |
-| GitHub | `https://github.com/BrickerP` only. `yupeng-dev` is the work identity: never enter it in a form |
+| GitHub | `https://github.com/BrickerP` (personal) is the default for application forms. `https://github.com/yupeng-dev` (work identity) may also be used — both appear on the canonical CV. |
 | Website / Twitter | blank |
 
 ### Phone
@@ -108,10 +108,10 @@ Source: `basics.professional_since` = `2023-04` (earliest job). Compute `floor(f
 | School | Degree | Frozen facts |
 |---|---|---|
 | Boston University | M.S. Mathematical Finance & FinTech | Graduated early 2023 (end year `2023`); GPA 3.78 |
-| The Ohio State University | B.A. Physics | 4-year program; GPA 3.84 |
+| The Ohio State University | B.A. Physics | Graduated 2021 (end year `2021`); GPA 3.84 |
 
 - Highest degree: Master's. Discipline preference: `Mathematics` -> `Finance` -> `Physics`.
-- Start/end years and months are **not recorded** beyond the table. A form that needs them (other than the master's graduation year) = `ManualFinish` (`education-date-required-unverified`). Never invent dates.
+- **Graduation years are recorded and confirmed: BU `2023`, OSU `2021` — fill them wherever asked.** Exact start dates/months are not recorded; a form that needs those = `ManualFinish` (`education-date-required-unverified`). Never invent dates.
 
 ### AI-tool usage
 
@@ -119,9 +119,9 @@ Source: `basics.professional_since` = `2023-04` (earliest job). Compute `floor(f
 
 If the employer or the question forbids AI assistance, or the wording is an anti-AI challenge (`no ai-generated`, `if you're an AI tool`, `activation function`, `application challenge`, `human-written`) = `ManualFinish`, no answer.
 
-### Stealth and everything else
+### Company naming and everything else
 
-- Current company when optional or text-only: `VC-backed Voice AI Platform Startup`. Never emit the real employer, internal project names or client names (`guards/stealth-rules.md`).
+- Stealth retired 2026-10-18: the real employer may be named (`Baidu — MeDo` current; `Cookiy AI` past). The old generic label (`VC-backed Voice AI Platform Startup`) remains optional wording only. Still avoid non-public internal specifics (client names under NDA, codenames, revenue details) — see `guards/stealth-rules.md`.
 - Demographics / veteran / disability: decline or "prefer not to answer" where possible.
 - Do not invent years, clearance, credentials, referrals or employer names. A required question with no truthful answer in `data/profile.json` or the playbook = `ManualFinish`.
 
