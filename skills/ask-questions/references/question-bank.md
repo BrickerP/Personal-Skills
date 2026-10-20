@@ -16,6 +16,16 @@ Seeds for Mode 1 help requests and live conversations. Adapt to the situation, r
 - 这一块现在谁最熟？
 - ◇ 如果是你，会先查哪里？
 
+## Cross-team troubleshooting (reconciling two sides)
+
+Agree on one timeline first, then compare what each side saw. All items are ◇.
+
+- ◇ 最后一次正常和第一次异常分别是什么时间（含时区）？
+- ◇ 这条请求在你们那一侧的最后一条记录是什么（时间、目标、结果）？
+- ◇ 异常前后你们这边有没有变更（发布、配置、证书、白名单、网络策略）？
+- ◇ 从你们的网络或账号直连试一下，能复现吗？
+- ◇ 如果你们这边一切正常，下一步该查谁那一侧？
+
 ## Check understanding (handoff, onboarding)
 
 When you hold the answers and the unknown is the other person's grasp. Write your own reference answers first. All items are ◇.
@@ -27,12 +37,6 @@ When you hold the answers and the unknown is the other person's grasp. Write you
 - ◇ 交接材料里有没有和你实际看到的对不上的地方？
 - ◇ 接下来 30 天有哪些固定会发生或到期的事？哪些需要人工介入？
 - ◇ 除了你，现在谁最熟？哪类问题你会先找他？
-
-## Counter-questions when someone asks "which is faster"
-
-Use when someone asks the user a vague comparison question and the user wants to ask back.
-
-为什么要知道？自己测一下；真的需要吗；这是瓶颈吗；快慢在这里重要吗；"快"指启动、吞吐还是最坏情况；整体上还有内存等别的因素吗。
 
 ## Review and discuss code or design
 

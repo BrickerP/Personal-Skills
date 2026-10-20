@@ -23,7 +23,7 @@ Each post relays an external article; the originals were not read.
 | Post | Contributes |
 |---|---|
 | 《如何做一个好的软件架构师》 2022-05-25, sections 6 and 7 | A good question proves you listened; "why" as the universal question (a requested feature is often a solution); a bad versus good cross-team bug report; lower the barrier to being helped; rubber-duck effect (stating the problem often solves it); frame for the audience, conclusion first |
-| 《怎么回答哪个更快的问题》 2012-12-28 (Eric Lippert) | Six counter-questions: why ask, do you need it, is it the bottleneck, does it matter, what does "faster" mean, what else is in the big picture |
+| 《怎么回答哪个更快的问题》 2012-12-28 (Eric Lippert) | Six counter-questions for the answerer: why ask, do you need it, is it the bottleneck, does it matter, what does "faster" mean, what else is in the big picture. Not carried into the skill because it is about answering; the 2015 post's "expected A faster, measured B faster, why?" form is used instead |
 | 《如何寻求别人的反馈》 2021-04-28 (Radical Candor) | A comfortable prepared question; tolerate silence; listen to understand, not to reply; reward the person who gives feedback; ask for specific feedback right after a deliverable; propose your own guesses for confirmation |
 | 《如何做老板和员工的一对一的沟通》 2020-03-16 (KnowYourTeam) | Specific beats generic; "How can I help?" is too broad, offer options; 15-minute prep (review notes, pick one to three focus areas, brainstorm five to ten questions, set a listening mindset); let the other person draft the agenda; eight good questions |
 | 《听听Matt Rogish说怎么面试程序员》 2013-07-12 | Write down what to probe and how, compare with the team; never ask the same thing twice; do not lead the witness |
@@ -32,15 +32,17 @@ Each post relays an external article; the originals were not read.
 | 《如何和不好相处的人一起工作》 2018-03-02 | Ask about unclear points and paraphrase; frame feedback as "here is my understanding, did I miss anything?"; ask for their expectations first |
 | 《远程办公的一些建议》 2020-05-05 | Pause after asking; ask one person at a time; confirm important information |
 | 《参加技术会议的一些小窍门》 2017-06-02 | Ask the speaker when not to use their product; prepare one question per person you want to meet |
+| 《向上管理中需要告诉老板什么》 2022-11-23 (Julia Evans) | When raising trouble, say what kind of help you need, because the boss cannot tell whether you want to solve it yourself; bosses have more resources than you |
 
 ## Agent additions
 
-Doing the homework with tools (Step 0) and the confirmed, ruled out, still unknown triage; ranking questions by what unblocks the most; Mode 2 (the agent asks the user); the interview-mode stopping rule; the draft-only, redaction and no-fabrication boundaries.
+Doing the homework with tools (Step 0) and the confirmed, ruled out, still unknown triage; ranking questions by what unblocks the most; Mode 2 (the agent asks the user) including the default-or-ask cost rule and the interview-mode stopping rule; the decision-request template; the cross-team troubleshooting and handoff seeds in the question bank; sensitive matters going private; the draft-only, redaction and no-fabrication boundaries.
 
 ## Changelog
 
 - 2026-10-20: initial version.
 - 2026-10-20: revised after a four-scenario read-through (help request, handoff agenda, interview me, mid-task ask): unified the title form, split help request from agenda, added the default-or-ask rule, per-mode output, shape-only examples, and a handoff section in the question bank.
+- 2026-10-20: second read-through (help request, handoff agenda, mid-task ask, vague request): the default-or-ask rule now judges the worst outcome if wrong and ships, waits on expensive decisions, and offers a default only with evidence; added the decision-request template, a gauge-understanding exception to the stop-if-answered rule, private notes in agendas, the cross-team troubleshooting seeds, and dropped the answerer-side counter-questions.
 
 ## Maintenance
 
