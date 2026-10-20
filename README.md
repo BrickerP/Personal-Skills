@@ -45,4 +45,5 @@ cd skills/daily-job-apply/adapters && npm install
 **内容/资料**：obsidian · lark-history-exporter · gmail-ai-daily-ops · lavayou-author-lens
 **创作/前端**：creative · draw-something · astryx-frontend · imagegen
 **文档**：pdf · pdf-sanitize
+**沟通**：ask-questions
 **其他**：opentrain-application-agent · migrate-to-codex · gh-address-comments · gh-fix-ci · openai-docs
