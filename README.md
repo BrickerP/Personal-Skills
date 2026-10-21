@@ -42,6 +42,7 @@ cd skills/daily-job-apply/adapters && npm install
 **生活/订阅**：dating-time · daily-read · ai-daily · fs-street
 **浏览器**：chrome-use · browser-use · browser-control
 **云/支付/运维**：cf-cli · aws-cli · stripe-cli-ops · codex-usage · codex-wallpaper · [grok-remote](skills/grok-remote/SKILL.md)
+**外观/终端**：wezterm-wallpaper（WezTerm 壁纸选择器 + 柔和模式）
 **内容/资料**：obsidian · lark-history-exporter · gmail-ai-daily-ops · lavayou-author-lens
 **创作/前端**：creative · draw-something · astryx-frontend · imagegen
 **文档**：pdf · pdf-sanitize
