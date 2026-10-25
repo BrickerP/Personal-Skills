@@ -14,31 +14,34 @@ Policy (frozen answers, what must be skipped, ManualFinish rules) lives in the
 
 ## Pre-flight (30 seconds, every session)
 
+Run `daily-job-apply` `COLD-START.md` §1 and the daily ~50 preflight before volume. Short form:
+
 1. `TZ=Asia/Shanghai date` — know the clock.
-2. Submitted count from `~/job-hunt/tracker.csv` (statuses Submitted/Ack/Rejected/DuplicateSubmitted).
-3. `chrome-use --session jobapply --browser yplmicro@gmail.com tab list` — the
+2. PDF hash vs `pdf-hashes.txt` (COLD-START §1). STOP on drift.
+3. Submitted count from `~/job-hunt/tracker.csv` (statuses Submitted/Ack/Rejected/DuplicateSubmitted).
+4. `chrome-use browsers`, then `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list --full` — the
    printed `profile:` line must say **Lu (Profile 2, yplmicro@gmail.com)**.
-   If it says anything else, stop; you are about to fill forms as the wrong person.
-4. Confirm the resume PDF exists
+   If it says anything else, stop (`wrong-profile`).
+5. If that session sticky-hangs, open a **new** session name with the same `--browser`. Do not thrash the dead one. Never grant chrome-use `auth always`. See Session hygiene below.
+6. Confirm the resume PDF exists
    (`~/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf`)
-   and `~/.config/daily-job-apply/env` holds `JOB_APPLY_PHONE`.
-5. The pre-submit gate lives at
+   and `~/.config/daily-job-apply/env` holds `JOB_APPLY_PHONE` (never echo it).
+7. Load `data/blocked-companies.json`. Any listed key is a hard skip, including **twilio**, even when the form looks clean.
+8. The pre-submit gate lives at
    `~/.codex/skills/daily-job-apply/scripts/ats_pre_submit_gate.js`
    (`chrome-use eval --stdin < that-file`).
 
 ## The loop, one role at a time
 
-1. Pick a role that is not already in the tracker (same company + title).
-2. Open the application URL in a new labelled tab. Ashby:
+1. Pick a role that is not already in the tracker. Dedupe by `(?:jobs/|token=)(\d{4,})` before open. Skip blocked-company keys.
+2. Open the application URL in **one** labelled tab. Ashby:
    `https://jobs.ashbyhq.com/<slug>/<uuid>/application`. Greenhouse:
    `https://job-boards.greenhouse.io/embed/job_app?for=<board>&token=<id>`.
-3. `wait --fn` for the first name field, then `snapshot -i -c`.
-4. **Read every visible question before typing anything.** If a required field
-   wants an essay, a numeric salary, a portfolio, a phonetic name, a street
-   address, a citizenship attestation or an AI-usage disclosure — close the tab
-   and record ManualFinish. Do not improvise.
-5. Fill: text by snapshot ref, then autocompletes, then radios / Yes-No, then
-   one option in each required checkbox group.
+3. `wait --fn` for the first name field, then `snapshot -i -c`. Navigation invalidates refs and the viewport — snapshot again before any click. Do not reuse refs from the previous page.
+3.5. **Probe before fill.** Read every label and sweep `checkValidity`. If a required field is ManualFinish-class, record ManualFinish and close the tab. Do not fill first.
+4. **Read every visible question before typing anything.** ManualFinish class includes essay, numeric salary, Discipline dropdown (no invented major), arbitration/NDA, street address, citizenship attestation, AI-usage disclosure, anti-AI challenge, visible CAPTCHA/SMS. A policy acknowledgement that does not ask about AI tools is **Tick / Yes** (policy A). Recorded bio facts only: DOB `1999-08-03` when asked, OSU graduation `2021`. Years floor stays `3`. Do not invent any other bio field.
+5. Fill: autocompletes first, then text by snapshot ref, then radios / Yes-No, then
+   one option in each required checkbox group. Re-snapshot after every navigation, upload, or combobox pick.
 6. Telephones: pick the country toggle then `fill --from-env`, so the number
    never appears in the transcript.
 7. Gate. Treat only two things as passable: `ok:true`, or a complaint set that
@@ -49,15 +52,21 @@ Policy (frozen answers, what must be skipped, ManualFinish rules) lives in the
    `newer_than:1h "security code"` → **newest** message → read the 8 characters
    from the snippet → back to the tab → `#security-input-0..7` **in order** →
    submit again.
-10. Verify `/confirmation` in the URL, or "thank you / received" in the body.
+10. Record only after proof. The only two proofs are `/confirmation` in the URL, or the
+    security-code field appearing (then finish step 9 and confirm). "thank you / received"
+    alone is not proof. A green `bad:0` is not proof.
     Only then record with
     `python3 ~/job-hunt/record-application.py --status Submitted …`
-    and close the tab. The recorder now **refuses** to overwrite a requisition
+    and **close the tab**. One active apply tab. Wait **≥90s** before the next
+    verified submit on the same platform family.
+    The recorder **refuses** to overwrite a requisition
     that is already recorded as applied (exit code 2, `DUPLICATE SKIPPED`);
     it compares `gh:<job id>` / `ashby:<uuid>` keys, so the `/jobs/<id>` and
     `/embed/job_app?token=<id>` shapes of the same job collide correctly.
     Treat that refusal as a stop: you are about to re-apply to a job you have
     already submitted. `--force` exists only for a knowing second submission.
+    A probe-time ManualFinish is recorded and the tab is closed. CAPTCHA/SMS on an
+    already-filled form is ManualFinish with `keep` (user blocker) — do not solve it.
 
 ## Verification: what actually counts as submitted
 
@@ -112,6 +121,28 @@ Policy (frozen answers, what must be skipped, ManualFinish rules) lives in the
   blocked after one attempt.
 - **Company caps are policy, not errors** — Linear 2/60d, Cognition 2,
   Sierra 2–3. The page says so; don't fight it.
+
+## Session hygiene (sticky fails)
+
+- Canonical session: `jobapply2` + `--browser yplmicro@gmail.com` on every start verb. Profile must be Lu (Profile 2). **Never grant chrome-use `auth always`.**
+- If the session hangs (commands freeze, extension silent): open a NEW session name; do not keep retrying the dead one. The retired name `jobapply` is not reused. Benign warning: `close incomplete: untracked tab` — ignore.
+- chrome-use version: if `upgrade` installed a newer binary but `doctor` still shows the old one, restart the Chrome extension / daemon before blaming the form. Do not mid-run upgrade without a user nod when other bots share the profile. Installed version ≠ active version until that restart.
+- `pick` flaky / hidden-tab scroll noop (seen on 1.5.233): work around with `click @ref`, keyboard, or eval `scrollIntoView`. After navigation, refs and the viewport are stale — re-snapshot before the next click or fill. `href` null on a link → use `eval`, do not hammer `open` on a slow site. Never block the batch on building a Greenhouse site adapter.
+- Visible CAPTCHA / hCaptcha / SMS stay user blockers → ManualFinish. Do not solve them.
+- Before restarting Chrome, the open tabs may include a half-filled Greenhouse form. Close or `keep` those first; do not assume they survive a restart.
+
+## Retry policy
+
+| Situation | Action |
+|---|---|
+| `page-load-or-form-timeout` / embed slow | Retry once on the canonical job-boards or embed URL |
+| `submit-unverified` / anti-bot text | ManualFinish; **no** same-run resubmit |
+| `skip-email-verification` / code page | Solve via Gmail (newest body in that company's thread); if no mail after the wait → ManualFinish |
+| `DUPLICATE SKIPPED` (exit 2) | Stop — already applied |
+| React fill won't commit after keyboard type | ManualFinish — don't burn 10 turns |
+| ManualFinish-dominated probe streak (first ~10) | Stop the run; ask the four gates |
+| Company in `blocked-companies.json` / cap | Skip (`company-blocked`), including Twilio |
+| Visible CAPTCHA / SMS | ManualFinish. Do not solve |
 
 ## The four policy gates dominate at scale
 

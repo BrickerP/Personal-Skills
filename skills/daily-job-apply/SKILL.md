@@ -11,8 +11,9 @@ Run a Bay Area-focused AI infrastructure job-search workflow for Yupeng Lu. This
 
 | Doc / path | Role |
 |------------|------|
-| [COLD-START.md](COLD-START.md) | Fixed agent startup: PDF hash → chrome-use profile check → `workflows/04-universal-web-apply.md` |
-| [FIELD-NOTES-1218.md](FIELD-NOTES-1218.md) | **Empirical layer from 1,218 submissions**: board-by-board required fields, silent-failure modes, the four policy gates, and which discovery sources are exhausted. Read before a run. |
+| [COLD-START.md](COLD-START.md) | Fixed agent startup, including the **daily ~50 zero-gate preflight** (PDF hash, Lu profile, `jobapply2`, blocked companies, path-form dedupe) |
+| [FIELD-NOTES-1218.md](FIELD-NOTES-1218.md) | **Empirical layer from 1,218 submissions**: board fingerprints, silent failures, the four policy gates, stop-if-ManualFinish-dominates. Read before a daily-50 run |
+| `~/job-hunt/HANDOFF.md` | Session-level counts and open human gates (salary, Discipline, essay, arbitration). Do not invent those answers |
 | [END-OF-RUN.md](END-OF-RUN.md) | Post-run: report, Greenhouse email-code flow, close Submitted tabs, wrong-profile cleanup, tracker/ledger/archive mapping |
 | [INSTALL.md](INSTALL.md) | Fresh install + migration from old `~/job-hunt` / `~/.omx` layout |
 | [README-FOR-FRIENDS.md](README-FOR-FRIENDS.md) | 3-step friend onboarding for FULL zip |
@@ -33,6 +34,8 @@ Run a Bay Area-focused AI infrastructure job-search workflow for Yupeng Lu. This
 
 **Canonical skill root**: `~/.codex/skills/daily-job-apply/` — all runtime paths are `$SKILL_ROOT`-relative. Optional overrides: `~/.config/daily-job-apply/env`.
 
+**Maintenance**: skills are maintained via **commits** to `github.com/BrickerP/Personal-Skills` ([pt119u]), then sync/install. Do not leave durable pitfalls only on the Mac. Daily-50 routine reads COLD-START → FIELD-NOTES-1218 → workflows/04 FROZEN → ATS-GREENHOUSE, plus `~/job-hunt/HANDOFF.md`.
+
 ## Cold-start migration
 
 **No conversation context required.** Fresh agents: read [COLD-START.md](COLD-START.md) only — do not depend on chat history.
@@ -48,6 +51,10 @@ User says **apply / go / 投递** → real submit (no dry-run) after preflight p
 
 - Target strategy: broad high-volume funnel across US/Bay Area/Remote software roles. Do not over-filter for precision; include general Backend / Full-stack / Platform / Infra / ML / AI roles. Mandatory seed lane every run: include the most relevant Agent / AI Infra / ML Systems roles first.
 - Per-company cap: never submit more than 20 applications to the same company across all time. `Speechify` is hard-blocked because the historical tracker already has far more than the cap. Treat `company-blocked` and `company-cap-reached` from the dedupe guard as hard stops.
+- **Blocked list wins over a clean form.** Any key in `data/blocked-companies.json` is a hard skip, including **Twilio** (`twilio`), even when FIELD-NOTES describes the form as clean. Do not delete the key. Skip `company-blocked`.
+- **AI policy A (2026-10):** a policy acknowledgement ("I confirm these materials are my own work") is tickable. AI-usage disclosure, "was this AI-assisted", and anti-AI challenges are ManualFinish. The one approved "Do you use AI tools?" sentence lives in workflows/04. Do not invent a second one.
+- **Recorded bio facts only:** date of birth `1999-08-03` when a form asks; OSU graduation year `2021` (FROZEN education). Years floor stays **3** (numeric `3`, free text `3+ years`). Do not invent any other bio field.
+- **Never grant chrome-use `auth always`.** After navigation, re-snapshot before the next click or fill; refs and the viewport are stale.
 - Email (resume header AND form fields): `yplmicro@gmail.com`. Never use a company email. If multiple Gmail tabs/accounts are open, identify by visible title/account text and use only the `yplmicro@gmail.com` mailbox for verification codes and job-search email. Never read/use `yupeng@cookiy.com` for job applications. `yplmicro@outlook.com` exists but is NOT the active job-search address — gmail is the source of truth.
 - Phone: the US number is filled into every phone field, optional or required (decision 2026-10-15; temporary). It lives only in `~/.config/daily-job-apply/env` as `JOB_APPLY_PHONE`; expand the variable in the shell and never type, print or commit the digits. The China number (`JOB_APPLY_PHONE_CN`) is never entered on a US application and the retired `+1-510` number is never used again. A form that rejects the US number or demands `+86` → `ManualFinish` with blocker `phone-rejected`. SMS-consent checkbox → No; an SMS/phone **verification** step → `ManualFinish`. Details: `workflows/04-universal-web-apply.md` → FROZEN → Phone.
 - Work authorization string for resume / form fields: `US Permanent Resident — No sponsorship required, now or in the future`.
@@ -55,9 +62,9 @@ User says **apply / go / 投递** → real submit (no dry-run) after preflight p
 - LinkedIn account: verify live; expected current profile is `https://www.linkedin.com/in/yupeng-lu-845a0b411/`. Source of truth is `data/profile.json`; do not infer the current URL from historical batch logs.
 - Use `chrome-use` against the user's real, already-logged-in Chrome only for authenticated LinkedIn pages. Do not substitute sandbox browser state for LinkedIn/account-sensitive checks.
 - LinkedIn application freeze (2026-06-03): until the user explicitly says the LinkedIn review/checkpoint is resolved, do not use LinkedIn Easy Apply, LinkedIn external-apply launch flows, LinkedIn profile edits, LinkedIn saves, LinkedIn messages, or LinkedIn recruiter actions. You may only read existing LinkedIn status if the user asks.
-- Browser channel: all browser work runs through `chrome-use`, which drives the user's real, already-logged-in Chrome (profile: `Lu` / `yplmicro@gmail.com`) and connects to the running Chrome by itself.
-- Chrome account isolation: every application tab must live in the connected profile `Lu` / `yplmicro@gmail.com`. Any chrome-use command that starts or restarts a session prints a `profile:` line (closing a session's last tab ends it, so this recurs mid-run); it must read `Lu (Profile 2, yplmicro@gmail.com)`, otherwise STOP (`wrong-profile`, `END-OF-RUN.md` §5). Open application tabs only with `chrome-use --session jobapply --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"`, confirm them with `tab list --full`, and keep a `yplmicro@gmail.com` Gmail tab available for verification codes. Never submit from any other profile.
-- External ATS safety mode: do not bulk-create application tabs. Open one at a time in the `jobapply` session, then re-check `chrome-use --session jobapply tab list --full`.
+- Browser channel: all browser work runs through `chrome-use`, which drives the user's real, already-logged-in Chrome (profile: `Lu` / `yplmicro@gmail.com`, session **`jobapply2`**) and connects to the running Chrome by itself. Never grant `auth always`. If `jobapply2` sticky-hangs, open a new session name with the same `--browser` (the retired name `jobapply` is not reused).
+- Chrome account isolation: every application tab must live in the connected profile `Lu` / `yplmicro@gmail.com`. Any chrome-use command that starts or restarts a session prints a `profile:` line (closing a session's last tab ends it, so this recurs mid-run); it must read `Lu (Profile 2, yplmicro@gmail.com)`, otherwise STOP (`wrong-profile`, `END-OF-RUN.md` §5). Open application tabs only with `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"`, confirm them with `tab list --full`, and keep a `yplmicro@gmail.com` Gmail tab available for verification codes. Never submit from any other profile.
+- External ATS safety mode: do not bulk-create application tabs. Open one at a time in the `jobapply2` session, then re-check `chrome-use --session jobapply2 tab list --full`.
 - Anti-bot posture: do not run high-speed script-only upload/fill/submit loops on Lever, Ashby, Greenhouse, Workday, or custom ATS pages. Use one page at a time, insert human-scale waits between upload/fill/final submit, read back required-field validity and page text, and stop on the first spam, CAPTCHA, verification, or unusual challenge signal. Do not retry the same final submit after an anti-bot warning.
 - Resume selection default (path is absolute, curated, **never regenerated by this skill**):
   - Use `/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf` for outbound English applications unless the user explicitly asks for a different generated variant.
@@ -115,12 +122,12 @@ If a hash differs from `pdf-hashes.txt`:
        --company-cap 20
      ```
      Exit code `20` / `duplicate-url`, `duplicate-role`, or `company-cap-reached` is a hard stop: do not reopen, refill, or resubmit the role. If the JSON reports same-company submitted matches under the cap, continue only when the URL is different and the role is intentionally distinct.
-   - Check the `profile:` line whenever the `jobapply` session prints one (its first command, and again after the session ended because its last tab closed): it must read `Lu (Profile 2, yplmicro@gmail.com)`. Anything else = STOP (`wrong-profile`).
-   - Open every application tab with `chrome-use --session jobapply --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"` and confirm it with `tab list --full` before filling or submitting.
-   - If an application page is open outside the `jobapply` session, reopen the URL with `tab new` in the session. Never close a tab you did not open.
+   - Check the `profile:` line whenever the `jobapply2` session prints one (its first command, and again after the session ended because its last tab closed): it must read `Lu (Profile 2, yplmicro@gmail.com)`. Anything else = STOP (`wrong-profile`).
+   - Open every application tab with `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"` and confirm it with `tab list --full` before filling or submitting.
+   - If an application page is open outside the `jobapply2` session, reopen the URL with `tab new` in the session. Never close a tab you did not open.
    - Immediately before final submit, run:
      ```bash
-     chrome-use --session jobapply eval --stdin < ~/.codex/skills/daily-job-apply/scripts/ats_pre_submit_gate.js
+     chrome-use --session jobapply2 eval --stdin < ~/.codex/skills/daily-job-apply/scripts/ats_pre_submit_gate.js
      ```
      The output starts with an upgrade-notice line and an `eval @ <url>` line, then the JSON verdict. Submit only when `ok` is `true`. Any blocker means do not submit; record `ManualFinish` or `Blocked` from the reported code (`workflows/04-universal-web-apply.md` → Pre-submit gate).
 5. Before any LinkedIn profile write, confirm Settings → Visibility → `Share profile updates with your network` is OFF. During the 2026-06-03 LinkedIn freeze, skip LinkedIn writes entirely.
@@ -134,7 +141,7 @@ If a hash differs from `pdf-hashes.txt`:
 Use `workflows/01-referral.md` when targeting a specific company or building a warm pipeline.
 
 ### Channel 2: Easy Apply workflow
-Use `workflows/02-easy-apply.md` for bounded LinkedIn Easy Apply batches.
+**FROZEN.** Do not run `workflows/02-easy-apply.md` or `linkedin-application-agent` until the user says the LinkedIn review is resolved (`COLD-START.md`).
 
 ### Channel 3: Weekly LinkedIn maintenance
 Use `workflows/03-weekly.md` once per week for recruiter-visible maintenance.
@@ -206,7 +213,7 @@ When tracker `exclude_known` (unique submitted URLs) **> 1500**, dict-only Ashby
 
 ### ManualFinish
 
-ManualFinish tabs are handed to the user with a bare `keep` (the tab leaves the `jobapply` session and stays open until the user closes it); print the handoff list in the terminal (`workflows/04-universal-web-apply.md` → ManualFinish handoff). The CSV queue and `manual-retry-runner.py` are retired.
+ManualFinish tabs are handed to the user with a bare `keep` (the tab leaves the `jobapply2` session and stays open until the user closes it); print the handoff list in the terminal (`workflows/04-universal-web-apply.md` → ManualFinish handoff). The CSV queue and `manual-retry-runner.py` are retired.
 
 ## Target sourcing surfaces
 
@@ -284,8 +291,9 @@ Email verification codes are agent-solvable when the relevant mailbox is availab
 | GPA / SAT / ACT / GRE | not recorded |
 | Citizenship / "U.S. citizen required" attestation | green card ≠ citizen; cannot be asserted |
 | Arbitration / NDA / non-compete agreement | legal waiver, needs user decision |
-| AI-usage disclosure or "was this AI-assisted" attestation | policy A |
+| AI-usage **disclosure** / "was this AI-assisted" / "did you use AI to write this" / interview AI attestation | policy — not the agent's voice. Do not invent |
 | AI-challenge / puzzle self-screen (activation function, "10 × 10", code-crack) | designed to be answered by the human |
+| *(not ManualFinish)* AI/authenticity **policy acknowledgement** ("I confirm materials are my own work") | user policy A — tick / Yes. This row is not a gate |
 | Company-specific skill gate with no truthful affirmative ("3+ yrs JVM backend", "satellite/RF") | answering "No" is honest but self-screening; record it |
 
 Compliance and privacy **acknowledgements** are the opposite of the above and should be ticked: privacy notice, export-control acknowledgement, "I acknowledge/confirm", data-processing consent, and "candidate privacy policy".
@@ -303,15 +311,16 @@ The pre-submit gate (`scripts/ats_pre_submit_gate.js`) is authoritative for exte
 Daily caps:
 - LinkedIn connection requests: 10/day.
 - Referral messages: 5–10/day.
-- LinkedIn Easy Apply submissions: 25/day.
+- LinkedIn Easy Apply submissions: **FROZEN** (the old 25/day cap is not a live target).
 - Profile views: 200/day.
 - InMail: Premium Career quota, usually 5/month.
 
 External ATS cadence and caps:
-- Default steady-state target is **up to 20 verified submissions/hour**, not a burst target.
-- Do not attempt 200 same-night submissions unless the user explicitly accepts the account/platform risk after seeing a safety warning. Prefer 20-40 high-confidence external submissions/night while LinkedIn is under review.
-- Use one active final-submit page at a time. Source/filtering can happen in parallel, but upload/fill/submit must be sequential and slow.
-- Leave 90-180 seconds between successful external ATS submissions on the same platform family, and longer after any verification warning.
+- Routine target is **~50 verified zero-gate Greenhouse submits / weekday evening**, not 200 the same night unless the user explicitly overrides after a safety warning.
+- Default steady-state pace stays **up to 20 verified submissions/hour**. Do not burst.
+- Use one active final-submit page at a time. Source/filtering can happen in parallel, but upload/fill/submit must be sequential and slow. Close the tab after each verified record.
+- Leave 90–180 seconds between successful external ATS submissions on the same platform family, and longer after any verification warning. For the daily-50 routine the floor is **~90s** after a verified submit.
+- If ManualFinish / Blocked dominate the first ~10 probes, stop and report the four gates.
 - Favor company-owned direct forms, recruiter email/referral, Simplify-compatible pages, and Greenhouse/Lever pages with no challenge. Treat Ashby final submit as high-risk after one possible-spam warning unless completed manually.
 
 Warn at 70% of any cap, and stop at 100%.

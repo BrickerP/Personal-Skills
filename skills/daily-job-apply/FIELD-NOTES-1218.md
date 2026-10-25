@@ -39,6 +39,8 @@ Plus smaller gates: street address (13), citizenship (7), GPA/SAT (4), arbitrati
 **Corollary**: if a run is producing mostly ManualFinish rows, stop applying and ask for these four
 answers. Continuing to probe produces zero submissions per hour.
 
+> **Daily-50 rule**: if ManualFinish / Blocked outnumber verified submits in the first 10 probes of a run, stop sourcing volume and surface the four gates. Continuing produces ~0 submits/hour.
+
 ---
 
 ## 2. Silent failure modes (the expensive ones)
@@ -72,6 +74,8 @@ Each of these *looks* fine and wastes a submission or an hour. Ordered by cost.
    landing, check `#iti-0__country-listbox` visibility, select the country, or dispatch `mousedown`.
 10. **Greenhouse code throttling is per company.** A third request in a day may never arrive (Braze).
     Re-read the *last* `.a3s` body; the thread collapses and the newest code is at the bottom.
+11. **City / `#candidate-location` commit.** `type → ArrowDown → Enter` often leaves the field empty and surfaces `candidate-location-error`. Prefer: type city text → **click the matching list option** (or chrome-use `pick` when it works) → re-read the value. If still empty and the board historically submits anyway (Brex/SingleStore), submit once and trust errors / `/confirmation`.
+12. **Session hang / chrome-use version pin.** If `jobapply2` sticky-hangs, open a new session name with the same `--browser` instead of retrying the dead one. `pick` may be flaky; installed chrome-use version can differ from the binary still running until the extension/daemon restarts. See `job-apply-automation` → "Session hygiene". The retired session name `jobapply` is not reused.
 
 ---
 
@@ -85,7 +89,7 @@ Each of these *looks* fine and wastes a submission or an hour. Ordered by cost.
 | **Tenstorrent** | same + one "I have read and understand the Export Control statement" = Yes + optional EEO |
 | **SambaNova** | name/email/phone/city/LinkedIn/website only |
 | **Mercury** | + Portfolio, "From where do you intend to work?", visa=No |
-| **Twilio** | + Preferred First Name, LinkedIn, 2× acknowledgement checkboxes, "how did you hear" group |
+| **Twilio** | Form shape is clean (preferred name, LinkedIn, 2 acks, how-did-you-hear) **but** company key `twilio` is in `data/blocked-companies.json` (over-apply / policy). **Always check the blocked list first**; if listed → Skip `company-blocked`, do not re-probe. Do not delete the key. |
 | **Starburst** | + Privacy "Acknowledge/Confirm", intended work location (state), support-experience=Yes, PST=Yes |
 | **Buildkite / Ketch / PathAI / PlanetScale** | name/email/phone/city + a few free-texts that are *prefilled-able* facts |
 
@@ -172,17 +176,28 @@ HN extraction gotcha: Algolia returns HTML-escaped text (`https:&#x2F;&#x2F;…`
   and ask the user for the *one* answer that unlocks the group.
 - Ledger vs tracker drift is real: a later ManualFinish upsert can overwrite a real submission. When a
   count looks wrong, grep the ledger for the company and repair the tracker row.
+- After a batch: optional Gmail sweep mapping reject/ack → tracker `Rejected` / `Ack` (one email → one row). **Do not** send follow-ups on auto-ack mail.
 
 ---
 
-## 6. Pre-run checklist (30 seconds)
+## 6. Pre-run checklist (daily ~50 zero-gate)
 
-1. Submitted count from tracker; note the delta target.
-2. `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list` → profile must be
-   **Lu (Profile 2, yplmicro@gmail.com)**.
-3. Resume PDF exists; `~/.config/daily-job-apply/env` has `JOB_APPLY_PHONE` (never echo it).
-4. One active application tab at a time; close each after recording.
-5. Before ending a run: duplicate audit + `memory_save` of new fingerprints.
+Mirror of `COLD-START.md` → Daily ~50 zero-gate preflight. Do not start volume until all of these pass:
+
+1. Chrome-use probe: `chrome-use browsers` and `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list --full` → **Lu (Profile 2, yplmicro@gmail.com)**. `TZ=Asia/Shanghai date`.
+2. Reconnect or new session name if hung (same `--browser`). Never grant chrome-use `auth always`.
+3. PDF hash vs `pdf-hashes.txt`. STOP on drift.
+4. Profile Lu confirmed whenever `profile:` prints.
+5. `data/blocked-companies.json` loaded. Twilio (`twilio`) if listed = Skip `company-blocked`. `JOB_APPLY_PHONE` exists in env (never echo).
+6. Dedupe by `(?:jobs/|token=)(\d{4,})` before open. boards / job-boards / embed token are one job.
+7. Zero-gate Greenhouse queue only for this routine.
+8. ≥90s between verified submits.
+9. Close the tab after each verified record. One active apply tab. After navigation, re-snapshot before the next click (refs and viewport are stale).
+10. Stop early if ManualFinish / Blocked dominate the first ~10 probes.
+11. Proof only `/confirmation` or a security-code field. CAPTCHA/SMS stay user blockers → ManualFinish.
+12. Deliver the run summary in the Grok Bot chat.
+
+Recorded bio facts only: DOB `1999-08-03` when asked; OSU graduation `2021`. Years floor stays **3**. Do not invent any other bio field. Before ending a run: duplicate audit. New fingerprints belong in a commit to Personal-Skills, not only in local notes.
 
 ---
 
