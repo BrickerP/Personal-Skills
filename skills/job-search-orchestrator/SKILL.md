@@ -5,7 +5,9 @@ description: Daily entry-point dashboard for Yupeng's US/Bay Area job search. Sc
 
 # Job Search Orchestrator
 
-The single daily entry point for Yupeng's job search. Read state, decide, route. **Never apply, never email, never edit resumes** — those are the job of sub-skills (`gh-resume-builder`, `daily-job-apply`, `linkedin-application-agent`).
+The single daily entry point for Yupeng's job search. Read state, decide, route. **Never apply, never email, never edit resumes** — those are the job of sub-skills (`gh-resume-builder`, `daily-job-apply`).
+
+**Standing override (2026-10-25).** LinkedIn Easy Apply is **FROZEN** — do not schedule it and do not route a batch to `linkedin-application-agent`. The weekday routine is **~50 verified zero-gate Greenhouse** submits via `daily-job-apply` + `job-apply-automation`, chrome-use session **`jobapply2`** (`--browser yplmicro@gmail.com`, Lu Profile 2). The old "weekly target 20" and "Easy Apply cap 25" lines below do not override that. The BJT 09:00–19:00 write ban was retired with stealth (2026-10-18); it must not block external ATS. The standing routine clock is still 21:00 Asia/Shanghai.
 
 ## Mental model
 
@@ -28,7 +30,7 @@ Think of this skill as a NOC dashboard, not a worker. Each run produces a 1-page
 
 - ❌ "Apply to these jobs" → route to `daily-job-apply`
 - ❌ "Update my resume from commits" → route to `gh-resume-builder`
-- ❌ "Fill out this LinkedIn Easy Apply" → route to `linkedin-application-agent`
+- ❌ "Fill out this LinkedIn Easy Apply" → **do not run it**. Easy Apply is FROZEN (`daily-job-apply` COLD-START). Do not route a batch to `linkedin-application-agent`
 - ❌ "Edit build_resumes.py" → just edit it directly
 
 ## Canonical paths (must match other skills)
@@ -236,9 +238,9 @@ FOLLOWUPS_DUE=$(awk -v today="$TODAY" '
 ```
 
 Decision rules:
-- `TODAY_SUBMITTED == 0` AND `WRITE_OK == true` AND BJT outside ban → "📮 No applications today. Run daily-job-apply."
+- `TODAY_SUBMITTED == 0` → "📮 No verified submits today. Run `daily-job-apply` zero-gate Greenhouse on session `jobapply2`." The retired BJT write ban does not block this. Do not schedule Easy Apply.
 - `OPEN_MANUAL >= 3` → "⚠️ $OPEN_MANUAL manual-finish tabs piling up. Triage before opening new ones."
-- `WEEK_SUBMITTED < 20` → "📊 Weekly velocity below target (20). Push today."
+- Weekday evening with no verified zero-gate Greenhouse submits → "📮 Run `daily-job-apply` on session `jobapply2` (routine ~50). Do not schedule Easy Apply." The old weekly floor of 20 does not replace that routine.
 - `FOLLOWUPS_DUE > 0` → "🔁 $FOLLOWUPS_DUE referral follow-ups due."
 
 ### 6.5. Vault application archive scan (ledger ↔ vault reconciliation)
@@ -556,7 +558,7 @@ awk -F'\t' '
 
 Rules:
 - Any single channel > 70% of weekly SUBMIT volume → "Diversify — try the underrepresented channels today."
-- `linkedin` channel at 25/day cap reached today → "Cap hit. Switch to external ATS or referral lane."
+- LinkedIn Easy Apply is FROZEN, so the old 25/day Easy Apply cap is not a live channel. External ATS uses the daily-50 zero-gate routine, not that cap.
 - Only one channel used this week → upgrade diversification recommendation to **P1**.
 - If `tracker.csv` shows channels (e.g., Lever, Greenhouse) that don't appear in `$TMP_CHANNEL` →
   **P1 SCHEMA GAP**: "Tracker has submissions on channels not archived in `applications/`.
@@ -589,7 +591,7 @@ Always emit this structure (Markdown, no fluff):
 | Metric | Value |
 |---|---|
 | Today (ledger / vault submit / vault touched) | N / M / K |
-| This week (ledger / vault submit / vault touched) | N / M / K (target submit: 20) |
+| This week (ledger / vault submit / vault touched) | N / M / K (weekday routine: ~50 verified zero-gate Greenhouse; old weekly floor 20 is historical) |
 | Open ManualFinish tabs | N |
 | Interviews scheduled (≤7d, vault dir+file) | N (prep missing: M) |
 | Unread job emails | N |
@@ -658,7 +660,7 @@ python3 /Users/yupeng/.codex/skills/daily-job-apply/scripts/job_archive.py backf
 ## Cadence-aware behavior
 
 - **Morning (BJT 06:00–09:00, before write ban)**: focus dashboard on "what to prepare today" — highlight P1 actions queued for after BJT 19:00.
-- **Daytime (BJT 09:00–19:00, write banned)**: read-only dashboard. P1 actions show as "queued for tonight". Allow Gmail triage + interview prep + markdown refresh (these are read/local-only).
+- **Daytime (BJT 09:00–19:00)**: LinkedIn writes stay frozen. External ATS is not under the retired stealth ban. The standing daily-50 routine is still 21:00 Asia/Shanghai. Allow Gmail triage, interview prep, and markdown refresh at any time.
 - **Evening (BJT 19:00–00:00, write window open)**: show "act now" framing. If nothing submitted today, escalate to red.
 - **Late night (BJT 00:00–06:00)**: same as evening but warn if velocity already met.
 
@@ -676,7 +678,7 @@ python3 /Users/yupeng/.codex/skills/daily-job-apply/scripts/job_archive.py backf
 - ❌ Producing a 20-section "comprehensive" status report. The dashboard is a triage tool, not a journal — if a section is empty, omit it.
 - ❌ Recommending more than 3 P1 actions per run. Pick the highest-leverage three.
 - ❌ Re-running gh-resume-builder more often than weekly unless `NEW_PRS >= 50` or a new public artifact appeared.
-- ❌ Recommending `daily-job-apply` during BJT write-ban window (09:00–19:00). Queue it for evening instead.
+- ❌ Scheduling LinkedIn Easy Apply. It is frozen. External ATS / the daily-50 routine is not under the retired BJT 09:00–19:00 stealth ban; the standing clock is still 21:00 Asia/Shanghai.
 - ❌ Treating "0 today" at 09:00 BJT as an emergency. It only becomes urgent after 21:00 BJT.
 
 ## Current-machine notes (2026-06-02)
@@ -687,7 +689,7 @@ python3 /Users/yupeng/.codex/skills/daily-job-apply/scripts/job_archive.py backf
   - `~/.claude/skills/{...}/SKILL.md`
 - Skill consistency check should warn if any of these diverge.
 - Active gh accounts: `BrickerP` (personal) + `yupeng-dev` (Cookiy work). When checking PR velocity for resume refresh, use `yupeng-dev` (work account). When checking personal-repo activity (quant, AI usage report), use `BrickerP`.
-- Weekly submission target: 20 (combined channels). Daily Easy Apply cap: 25.
+- Historical note only: an older weekly combined target was 20 and an Easy Apply cap was 25. Both are superseded by the 2026-10-25 override (Easy Apply frozen; weekday routine ~50 verified zero-gate Greenhouse on `jobapply2`).
 - Vault archive paths confirmed populated as of 2026-06-02:
   - `applications/linkedin-batch-2026-05-31.md` (single-file, table: 83 touched / 45 submitted)
   - `applications/linkedin-batch-2026-06-01.md` (single-file, table: 35 touched / 20 submitted)

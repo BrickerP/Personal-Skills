@@ -34,8 +34,8 @@ This file is the knowledge; the automation is gone. Drive Greenhouse forms inter
 | Location (City) | `#candidate-location` | type `San Francisco, CA`, then **click** the matching option | hardcoded | React-Select autocomplete — filling the value without selecting the option does nothing |
 | School (edu 0) | `#school--0` | `Boston University` | `education[0].school` | Fill only if required-and-empty |
 | Degree (edu 0) | `#degree--0` | `Master's Degree` → `Masters` → `Master` | `education[0].degree` | Option wording varies per board |
-| Discipline (edu 0) | `#discipline--0` | `Mathematics` → `Finance` → `Physics` | derived | — |
-| Education years | `start-year--0` / `end-year--0` | master's end year `2023` only; any start year or other year ⇒ ManualFinish | FROZEN → Education | Required start+end ⇒ human only. Never invent a start year |
+| Discipline (edu 0) | `#discipline--0` | **ManualFinish** when the board requires a major pick | open human gate | Preference order in FROZEN (`Mathematics` → `Finance` → `Physics`) is not a universal dropdown string. Do not invent a label |
+| Education years | `start-year--0` / `end-year--0` | recorded graduation end years only: BU `2023`, OSU `2021` | FROZEN → Education | Start year/month or any other date ⇒ ManualFinish (`education-date-required-unverified`). Never invent a start year. DOB, if asked: `1999-08-03`. Years-of-experience floor stays `3` |
 | Demographic dropdowns | `.demographic--container input.select__input[id]` | one of the 8 decline variants | — | Required demographics block submission |
 | Required checkboxes | `input[type=checkbox][required]` | tick `consent\|privacy\|processing of personal data\|gdpr_(demographic_data\|processing)_consent_given\|certify\|acknowledge\|terms` | — | **Never tick** `future job opportunities\|talent community\|marketing` |
 | Submit | `button[type=submit]` with text `Submit application` | — | — | After a security-code page, take the **last** button containing Submit |
@@ -49,13 +49,13 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 |---|---|
 | Work authorization / visa / sponsorship / citizen / permanent resident / "U.S. person" / clearance | FROZEN → Work authorization: authorized **Yes**, sponsorship **No**, U.S. citizen **No**, permanent resident **Yes**, U.S. person (EAR) **Yes**, active clearance **No**. Free text: `US Permanent Resident — No sponsorship required, now or in the future` |
 | Nationality / country of citizenship / passport / country of birth | **Not frozen — ManualFinish** until the user answers |
-| Current company / title | `VC-backed Voice AI Platform Startup` / `AI Agent Engineer` (`experience[0].title`). Company only when the field is optional or free text; a required or lookup-style company field ⇒ ManualFinish (`ATS-ASHBY.md` §6.3) |
+| Current company / title | FROZEN → Company naming: `Baidu — MeDo` (current), `Cookiy AI` (past) / `AI Agent Engineer`. Stealth retired 2026-10-18. The old `VC-backed Voice AI Platform Startup` label is optional wording only, not the default |
 | Location / city / state / zip | `San Francisco Bay Area` / California / `94105` |
 | LinkedIn / GitHub | `.../in/yupeng-lu-845a0b411/` / `https://github.com/BrickerP` |
 | Degree / major | `Master's degree` / `Mathematical Finance and FinTech` |
 | Programming / interview language | **Python**; for three-language questions: `Python: advanced; TypeScript/JavaScript: advanced; Go: working proficiency.` |
 | Timezone | `Pacific Time` |
-| Salary | `Open to market-competitive compensation based on level and location.` |
+| Salary | **ManualFinish** — numeric range is a user gate. Do not invent a number or a market sentence |
 | How did you hear | text `Company careers page`; dropdown prefer `company career\|career page\|company website` |
 | Referral / prior employment / relatives / non-compete | **No** |
 | Sanctioned countries (Cuba/Iran/NK/Russia…) | No |
@@ -65,8 +65,10 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 | Onsite / relocation | Bay Area roles ⇒ Yes; non–Bay Area ⇒ **No**; explicit relocate-to-Bay-Area ⇒ Yes |
 | On-call / 24-7 | Yes |
 | Degree thresholds (STEM/bachelor etc.) | Yes (multi-select) |
-| "Do you use AI tools" | FROZEN → AI-tool usage (daily coding agents, human-verified). Employer bans AI ⇒ ManualFinish |
-| Why us / anything else | Company-name template sentence |
+| Policy acknowledgement ("I confirm this application / these materials are my own work"; authenticity attestation that does **not** ask about AI tools) | **Tick / Yes** (user policy A, 2026-10). Point at workflows/04 FROZEN → AI acknowledgements |
+| "Do you use AI tools" | FROZEN → the one approved sentence in workflows/04. Employer bans AI ⇒ ManualFinish |
+| AI-usage disclosure / "was this AI-assisted" / "did you use AI to write this" / interview AI attestation | **ManualFinish** — do not invent (policy A split) |
+| Why us / anything else | **ManualFinish** — essay gate. Do not invent a template sentence |
 | **Anti-AI / challenge questions** | **Do not answer — go straight to ManualFinish** |
 
 ---
@@ -74,7 +76,12 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 ## 2. Flow (job page → submit)
 
 1. **URL normalisation** — `boards.greenhouse.io/<board>/jobs/<id>` **301s** to `job-boards.greenhouse.io/...`;
-   treat both as the same job for dedupe. Strip `?…` and trailing `/application|/confirmation|/apply|/thanks`.
+   treat both as the same job for dedupe. Strip tracking query noise (`gh_src`, UTM) and trailing `/application|/confirmation|/apply|/thanks`.
+   **Dedupe identity / `norm_url` caveats:**
+   - Keep `token=<jobId>` and path `jobs/<id>` as the ATS key. Never treat `?gh_src=` / UTM variants as distinct jobs.
+   - `boards.greenhouse.io/<board>/jobs/<id>` ≡ `job-boards.greenhouse.io/...` ≡ `.../embed/job_app?for=<board>&token=<id>` for dedupe. Prefer opening the embed or job-boards form URL that actually hydrates `#first_name`.
+   - Do **not** use board-root URLs as apply URLs (they 302 to the careers site).
+   - If a `norm_url` helper and the tracker disagree, trust the job-id regex `(?:jobs/|token=)(\d{4,})` plus `record-application.py` refusal (exit 2).
 2. **A board root path is not proof of Greenhouse** — `job-boards.greenhouse.io/nebius` **302s** to
    `careers.nebius.com`. Always take the canonical URL from the job page / resolver, never from a board root.
 3. **Embedded detection** — URL contains `gh_jid=`, **or** the URL is not on a `greenhouse.io` domain.
@@ -96,6 +103,7 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 8. **Email security-code branch** — page shows ≥4 single-character `security-input-*` cells. Read an
    **8-character alphanumeric** code from Gmail (body like `application: XXXXXXXX`, sender
    `no-reply@us.greenhouse-mail.io`, subject `Security code for your application to <company>`).
+   Same company → same Gmail thread; always take the **newest** body.
    Fill one character per cell (native value setter + `input`/`change`/`blur`); the submit button enables
    only after the last cell. Run the gate again, then submit again.
 9. **Confirmation test** — body matches
@@ -166,11 +174,13 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 12. **Education years** → graduation years are recorded and confirmed (BU `2023`, OSU `2021`) and are filled wherever asked; any other date (start year/month) ⇒ ManualFinish (`education-date-required-unverified`).
 13. **`boards.` and `job-boards.` are the same job** → normalise or you will double-apply.
 14. **Board root 302s to the company site** → never infer the form location from a board root.
-15. **Anti-AI questions are traps** → `no ai-generated / if you're an AI tool / activation function / application challenge / do not use AI / human-written` ⇒ stop, do not answer.
+15. **Anti-AI questions are traps** → `no ai-generated / if you're an AI tool / activation function / application challenge / do not use AI / human-written` ⇒ stop, do not answer. A policy acknowledgement that does not ask about AI tools ("I confirm these materials are my own work") is **Tick / Yes** (policy A). AI-usage disclosure is ManualFinish. See workflows/04 FROZEN.
 16. **Company naming** → stealth retired 2026-10-18: the real employer may be named (`Baidu — MeDo` current; `Cookiy AI` past). The old label `VC-backed Voice AI Platform Startup` is optional wording only. Still avoid non-public internal specifics (client names under NDA, codenames, revenue details).
 17. **`--system-chrome` had a window guard** → the application tab had to share a window with the
     `yplmicro@gmail.com` Gmail tab. chrome-use has no window id; the equivalent gate is now
-    "same connected profile" (see `END-OF-RUN.md` §3/§5).
+    "same connected profile" (see `END-OF-RUN.md` §3/§5). Session for examples is `jobapply2` (`--browser yplmicro@gmail.com`).
+18. **`pick` may be unavailable or flaky** on some chrome-use versions → fall back to clicking the option or keyboard. Do not stall the run waiting for a Greenhouse site adapter. `#candidate-location`: type the city, then click the matching option; `ArrowDown → Enter` often leaves the field empty.
+19. **Security-code mail** stacks in one thread per company. Always take the **newest** body, not the first code in the thread.
 
 ---
 
@@ -198,15 +208,13 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 
 **Still open (need a human decision)**:
 
-1. **Education dates.** Start years for both degrees, the exact master's end month and the bachelor's years are
-   recorded nowhere. Roles that require them stay ManualFinish until the user supplies them.
+1. **Education dates.** Graduation **end** years are frozen (BU `2023`, OSU `2021`) and DOB `1999-08-03` may be filled when a form asks. Start years/months and any other bio field are not recorded — ManualFinish. Do not invent them. Years-of-experience floor stays `3`.
 2. **Nationality / country of citizenship / passport.** Not frozen, so ManualFinish until the user answers.
 3. **Candidate location granularity.** `#candidate-location` typed `San Francisco` while the profile says
    `San Francisco Bay Area`. If a board's dropdown has no `San Francisco` option the old adapter stalled at
    `location-option-not-verified`; a human must choose sensibly. Los Angeles / Diamond Bar vs Bay Area is the user's call.
 4. **Self-ratings** (AWS / Ansible / Bash proficiency questions) have no prepared answers. Decide truthful wording once.
-5. **Remaining adapter-era hardcodes** (company/title wording, salary, timezone, how-did-you-hear) were never
-   read from `profile.json`; editing the profile will not change them. Keep this file in sync deliberately.
+5. **Remaining adapter-era hardcodes** (timezone, how-did-you-hear) were never read from `profile.json`. Company naming defers to FROZEN (`Baidu — MeDo`). Numeric salary is ManualFinish — do not revive the old market-competitive sentence.
 6. **`gh-priority-boards.json` has no `canonical_path`** while the other two point at `~/job-hunt/data/`.
    Confirm which copy is authoritative.
 7. **`submit-unverified` is ambiguous** — one verified case had neither anti-bot text nor security inputs,

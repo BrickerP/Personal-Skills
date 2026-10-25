@@ -17,7 +17,7 @@ Emit in the final response:
 - `~/job-hunt/tracker.csv` rows touched
 - `~/job-hunt/application-ledger.md` rows appended
 - Vault archive paths (`applications/<channel>-batch-YYYY-MM-DD.md`) if Submitted
-- **Manual finish pages** — tabs handed to the user with `keep`: company, role, URL, tab label (`chrome-use --session jobapply tab <label>` re-selects a kept tab from the same session), remaining action
+- **Manual finish pages** — tabs handed to the user with `keep`: company, role, URL, tab label (`chrome-use --session jobapply2 tab <label>` re-selects a kept tab from the same session), remaining action
 
 ---
 
@@ -54,9 +54,9 @@ Some Greenhouse boards ask for an email security code after Submit (`ATS-GREENHO
 3. Select the application tab and enter the code:
 
 ```bash
-chrome-use --session jobapply tab <label>        # re-select the application tab (refs belong to the active tab)
-chrome-use --session jobapply snapshot -i        # find the security-input-N cells
-chrome-use --session jobapply fill @eN <char>    # one character per security-input-N cell, in order
+chrome-use --session jobapply2 tab <label>        # re-select the application tab (refs belong to the active tab)
+chrome-use --session jobapply2 snapshot -i        # find the security-input-N cells
+chrome-use --session jobapply2 fill @eN <char>    # one character per security-input-N cell, in order
 ```
 
    Greenhouse splits the code into `security-input-1` … `security-input-N` on some boards and uses a single security/code field on others; a single field takes the whole code. If the submit button stays disabled after the last cell, set the cells the way `ATS-GREENHOUSE.md` §2.8 describes.
@@ -71,9 +71,9 @@ After **verified** confirmation page or confirmation email:
 
 1. Upsert tracker + append ledger (see §6).
 2. `job_archive.py emit` for non-LinkedIn channels.
-3. **Close** only your own application tab: `chrome-use --session jobapply tab close <label>`.
+3. **Close** only your own application tab: `chrome-use --session jobapply2 tab close <label>`.
 
-Hand a tab to the user only for `ManualFinish` (CAPTCHA, SMS, anti-spam, unknown final step): select it (`chrome-use --session jobapply tab <label>`), then run a bare `chrome-use --session jobapply keep`. chrome-use reports a kept tab as left for the user and exempt from auto-close; it leaves the session and survives `close` and `session stop`. The user closes it, never the agent. Do not add `--as handoff` (fails on chrome-use 1.5.186). A ManualFinish tab that was not kept still belongs to the session, so `close`, `session stop` or the daemon's idle shutdown can take it away: keep it before moving on.
+Hand a tab to the user only for `ManualFinish` (CAPTCHA, SMS, anti-spam, unknown final step): select it (`chrome-use --session jobapply2 tab <label>`), then run a bare `chrome-use --session jobapply2 keep`. chrome-use reports a kept tab as left for the user and exempt from auto-close; it leaves the session and survives `close` and `session stop`. The user closes it, never the agent. Do not add `--as handoff` (fails on chrome-use 1.5.186). A ManualFinish tab that was not kept still belongs to the session, so `close`, `session stop` or the daemon's idle shutdown can take it away: keep it before moving on.
 
 ---
 
@@ -82,9 +82,9 @@ Hand a tab to the user only for `ManualFinish` (CAPTCHA, SMS, anti-spam, unknown
 The only identity gate is the `profile:` line `chrome-use` prints whenever a session starts or restarts (closing a session's last tab ends it, so this can recur mid-run); it must read `Lu (Profile 2, yplmicro@gmail.com)`. Every command that can start the session carries `--browser yplmicro@gmail.com`. If a line reads anything else (`wrong-profile`), **STOP the whole run**. It is a run-level stop, not a ledger row:
 
 1. **Do not fill or submit.**
-2. Close only the tabs this run opened: `chrome-use --session jobapply tab close <label>`.
+2. Close only the tabs this run opened: `chrome-use --session jobapply2 tab close <label>`.
 3. Fix the connection: `chrome-use browsers` must show `Lu` as CONNECTED.
-4. Report the stop. A new run re-opens the JD/application URL with `chrome-use --session jobapply --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"` so it lands under the connected profile.
+4. Report the stop. A new run re-opens the JD/application URL with `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"` so it lands under the connected profile.
 
 Keep **one** application tab in the session at a time (a tab handed over with `keep` has left the session and no longer counts). Do not bulk-create tabs — extra tabs are how a page ends up under a profile you are not watching.
 
