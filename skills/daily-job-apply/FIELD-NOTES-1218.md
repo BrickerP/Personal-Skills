@@ -183,3 +183,11 @@ HN extraction gotcha: Algolia returns HTML-escaped text (`https:&#x2F;&#x2F;…`
 3. Resume PDF exists; `~/.config/daily-job-apply/env` has `JOB_APPLY_PHONE` (never echo it).
 4. One active application tab at a time; close each after recording.
 5. Before ending a run: duplicate audit + `memory_save` of new fingerprints.
+
+---
+
+## 7. Handoff
+
+Session-level state, environment facts and the open decisions live in **`~/job-hunt/HANDOFF.md`**.
+Read it first when picking this up cold: it holds the current counts, the Chrome session/profile
+facts, the four policy gates that need the user, and the ranked next actions.
