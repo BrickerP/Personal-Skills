@@ -8,10 +8,12 @@
     "linkedin": "https://www.linkedin.com/in/yupeng-lu-845a0b411/",
     "linkedin_note": "Current job-search LinkedIn profile URL; verify live tab before sending.",
     "github": [
-      "https://github.com/BrickerP"
+      "https://github.com/BrickerP",
+      "https://github.com/yupeng-dev"
     ],
     "twitter": null,
-    "website": null,
+    "website": "https://brickerp.github.io/hire/",
+    "website_note": "Public hiring/portfolio page (live, title 'Yupeng Lu — AI agent & backend engineer'). Use for portfolio/website fields instead of ManualFinish. github.com/yupeng-dev is the work account per the shipped resume.",
     "work_authorization": "US Permanent Resident — No sponsorship required, now or in the future",
     "professional_since": "2023-04",
     "years_of_experience_note": "Derive at fill time: floor of the full years since professional_since (3 as of 2026-10). Never round up; skill-specific years never exceed the total. Rule: workflows/04-universal-web-apply.md, FROZEN section."
@@ -28,7 +30,8 @@
       "Applied AI Engineer",
       "Agent Infrastructure Engineer"
     ],
-    "current_company_public_label": "VC-backed Voice AI Platform Startup",
+    "current_company_public_label": "Cookiy AI",
+    "current_company_public_label_note": "Matches the shipped resume (Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf: 'Cookiy AI - AI Agent Engineer, Aug 2025 - Present'). Stealth label retired 2026-10-18.",
     "stealth_mode": false,
     "never_emit_in_outbound_materials": [
       "internal project codenames",
@@ -42,7 +45,7 @@
   "summary": "US Permanent Resident based for San Francisco Bay Area opportunities, with no sponsorship required now or in the future. AI infrastructure and backend platform engineer building production agent systems, MCP/tool-use platforms, API contracts, auth/billing flows, evaluation gates, and cloud deployment paths. Strong fit for Bay Area AI infra, ML systems, developer tools, and agent-platform roles needing end-to-end ownership from backend contracts to production reliability.",
   "experience": [
     {
-      "company": "VC-backed Voice AI Platform Startup",
+      "company": "Cookiy AI",
       "title": "AI Agent Engineer",
       "location": "San Francisco Bay Area / Remote",
       "start": "2025-08",

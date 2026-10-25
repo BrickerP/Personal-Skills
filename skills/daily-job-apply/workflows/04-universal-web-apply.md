@@ -57,7 +57,9 @@ Single source of truth for the items below. The `ATS-*.md` tables point here and
 | Email | `yplmicro@gmail.com` |
 | LinkedIn | `basics.linkedin` in `data/profile.json` |
 | GitHub | `https://github.com/BrickerP` (personal) is the default for application forms. `https://github.com/yupeng-dev` (work identity) may also be used — both appear on the canonical CV. |
-| Website / Twitter | blank |
+| Website | `https://brickerp.github.io/hire/` (public hiring page, live 2026-10-25; the user sends it to recruiters). Fill it in portfolio/website/personal-site fields instead of `ManualFinish`. |
+| Portfolio | same as Website. A required portfolio field with any other expected shape = `ManualFinish`. |
+| Twitter | blank |
 
 ### Phone
 

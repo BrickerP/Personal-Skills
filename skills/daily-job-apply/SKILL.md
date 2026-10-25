@@ -12,6 +12,7 @@ Run a Bay Area-focused AI infrastructure job-search workflow for Yupeng Lu. This
 | Doc / path | Role |
 |------------|------|
 | [COLD-START.md](COLD-START.md) | Fixed agent startup: PDF hash → chrome-use profile check → `workflows/04-universal-web-apply.md` |
+| [FIELD-NOTES-1218.md](FIELD-NOTES-1218.md) | **Empirical layer from 1,218 submissions**: board-by-board required fields, silent-failure modes, the four policy gates, and which discovery sources are exhausted. Read before a run. |
 | [END-OF-RUN.md](END-OF-RUN.md) | Post-run: report, Greenhouse email-code flow, close Submitted tabs, wrong-profile cleanup, tracker/ledger/archive mapping |
 | [INSTALL.md](INSTALL.md) | Fresh install + migration from old `~/job-hunt` / `~/.omx` layout |
 | [README-FOR-FRIENDS.md](README-FOR-FRIENDS.md) | 3-step friend onboarding for FULL zip |
@@ -270,6 +271,24 @@ Track these fields in `tracker.csv`, `application-ledger.md`, and final reports:
 ## Manual-finish policy
 
 Email verification codes are agent-solvable when the relevant mailbox is available/logged in (for this search, `yplmicro@gmail.com`). The agent should read Gmail, extract the code, enter it, and submit if all other fields are safe. The Greenhouse `security-input-*` flow is in `END-OF-RUN.md` §3.
+
+**The ManualFinish class list is frozen and must not be improvised around.** Record ManualFinish and move on when a *required* field is one of:
+
+| Class | Why it is not the agent's call |
+|---|---|
+| Essay / "Why <company>" / any required free-text about motivation | authoring the user's voice |
+| Numeric salary or compensation expectation | user's number, not a fact |
+| Explicit years-of-experience or skill-year count | a claim about the user's history |
+| Education **Discipline** / major | not recorded in the profile |
+| Street address (not just ZIP/city) | never disclosed |
+| GPA / SAT / ACT / GRE | not recorded |
+| Citizenship / "U.S. citizen required" attestation | green card ≠ citizen; cannot be asserted |
+| Arbitration / NDA / non-compete agreement | legal waiver, needs user decision |
+| AI-usage disclosure or "was this AI-assisted" attestation | policy A |
+| AI-challenge / puzzle self-screen (activation function, "10 × 10", code-crack) | designed to be answered by the human |
+| Company-specific skill gate with no truthful affirmative ("3+ yrs JVM backend", "satellite/RF") | answering "No" is honest but self-screening; record it |
+
+Compliance and privacy **acknowledgements** are the opposite of the above and should be ticked: privacy notice, export-control acknowledgement, "I acknowledge/confirm", data-processing consent, and "candidate privacy policy".
 
 If a page is fully or mostly filled but final submit is blocked by visible CAPTCHA/hCaptcha, SMS/phone verification, graphical anti-bot challenge, a phone field that rejects the US number or demands `+86` (`phone-rejected`), or an unknown final confirmation step that cannot be safely resolved from the provided profile, do not close the page. Hand the Chrome tab to the user with a bare `keep` (it leaves the session and stays open until the user closes it), record the role in `application-ledger.md` as `ManualFinish` in the `END-OF-RUN.md` §6 line format (blocker as `manual-finish-needed:<blocker>` in the notes), and print the manual handoff directly in the terminal/final response: company, role, URL, tab label if known, exact remaining human action, and whether fields appear filled. Do not maintain a separate manual-finish Markdown queue.
 
