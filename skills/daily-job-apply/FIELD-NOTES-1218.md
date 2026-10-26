@@ -83,6 +83,13 @@ Each of these *looks* fine and wastes a submission or an hour. Ordered by cost.
 
 ### 3.1 Clean forms — fill these without hesitation
 
+> **Gate that overrides everything below:** any company key in
+> `data/blocked-companies.json` (canonical `~/job-hunt/data/blocked-companies.json`)
+> is a hard skip, **even if its form is clean**. The list exists to stop
+> over-application; check it *before* opening a form. As of 2026-10-25 it contains
+> 84 keys including `twilio`, `abnormal`, `elastic`, `affirm`, `databricks`,
+> `togetherai`, `pinterest`, `nuro`, `samsara`, `scaleai`, `gitlab`, `okta`.
+
 | Board | Fields actually required |
 |---|---|
 | **Figure** (figureai) | name, email, phone, country, Location (City), LinkedIn, Website. Nothing else. 6/7 reqs submitted |
