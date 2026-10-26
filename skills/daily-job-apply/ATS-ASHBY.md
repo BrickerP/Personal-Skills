@@ -7,6 +7,11 @@
 This file is the knowledge; the automation is gone. Drive Ashby forms interactively with `chrome-use`
 (see `workflows/04-universal-web-apply.md` for the procedure).
 
+[POLICY.md](POLICY.md) governs live work. Old selectors and hardcoded rows are
+diagnostic history; only FROZEN/verified profile facts authorize an answer. Use
+fresh snapshots and real UI actions, never native setters, synthetic clicks or
+browser fill/upload/submit loops.
+
 > **Read this first**: before 2026-10-15 most answers below were **hardcoded in the retired adapter**, not read
 > from `data/profile.json`. The identity / phone / location / work-authorization / years / education / AI-usage
 > answers are now **frozen in the FROZEN section of `workflows/04-universal-web-apply.md`**, and every row
@@ -41,26 +46,26 @@ embedded card and land on the `/application` full page.
 | Current Company / Most Recent Employer | `Baidu — MeDo` may be named (stealth retired 2026-10-18); the generic label `VC-backed Voice AI Platform Startup` remains optional wording. A required or lookup-style company field still needs the real name to match the CV ⇒ if unsure, ManualFinish (§6.3) | FROZEN → Company naming; `positioning.current_company_public_label` | Real employer allowed; the old stealth label is optional only. `input[name*="company" i]` is a broad match that writes into **any** input containing "company" |
 | Current Job Title / Role | AI Agent Engineer | `experience[0].title` | Fill only when the field is empty |
 | Current Location / Where are you currently located | `San Francisco Bay Area` (free text); autocomplete: type `San Francisco, CA`, click the match | FROZEN → Location | The retired adapter typed `San Francisco Bay Area, CA`, and its dropdown flow had to reach `San Francisco Bay Area, California, United States`. Granularity is still open (§6.2) |
-| Desired Location / Location for employment | `Remote, United States` | hardcoded | — |
+| Desired Location / Location for employment | Current verified preference for the actual role; unknown is ManualFinish | profile / user preference | Do not reuse the retired default |
 | Country of Residence / current country | `United States` | FROZEN → Location | — |
 | Passport Country / Nationality / Citizenship | **Not frozen ⇒ ManualFinish** | — | The retired adapter typed a value inferred from `positioning.target_geo` (`profile.json` has no country key). The user never confirmed it |
 | City, State | `San Francisco, California` | FROZEN → Location | Materialize-style "city/state String" was still blocked historically |
 | GitHub Username / Handle | `BrickerP` (default) | FROZEN → Identity | `yupeng-dev` (work identity) may also be used — both appear on the canonical CV |
-| Portfolio / GitHub URL / Website (`type=url`) | GitHub field: `https://github.com/BrickerP`. Website / Portfolio: blank unless required, then the same URL | FROZEN → Identity | The retired adapter put the GitHub URL into every `type=url` input |
-| How did you hear about us | `LinkedIn` | `HEAR_ABOUT_TEXT_DEFAULT` | Option variant searches in order: LinkedIn → Online → Other → Company careers page → Company website → Job board; fallback text `Company careers page` |
+| Portfolio / GitHub URL / Website (`type=url`) | Use FROZEN Identity: GitHub stays GitHub; Website/Portfolio uses the approved hiring page | FROZEN → Identity | Never put the GitHub URL into every URL input; the approved hiring page belongs in Website/Portfolio |
+| How did you hear about us | Actual source of this role, matched to the current options; unknown required source ⇒ ManualFinish | observed source | Do not reuse the retired LinkedIn default or invent a referral |
 | Work Authorization / Authorized to work | Yes; status dropdowns pick the Permanent-Resident family; the full `work_authorization` sentence is only for free text | FROZEN → Work authorization | Dropdown-value style (Citizen/Permanent Resident/Visa Holder) and Yes/No style are different DOM |
 | Will you now or in the future require sponsorship | No | FROZEN → Work authorization | **Answer work-auth first, then sponsorship** |
 | U.S. citizen | No | FROZEN → Work authorization | — |
-| Age 18+ / Background check consent / Relocation / Travel | Yes | hardcoded | — |
-| Previously employed / Current employee / Felony | No | hardcoded | — |
+| Age, background consent, relocation or travel | Only the exact confirmed fact/policy; otherwise ManualFinish | FROZEN / verified profile | Never reuse the retired blanket Yes |
+| Previously employed / Current employee / Felony | Only the exact confirmed fact; otherwise ManualFinish | verified profile | Never reuse the retired blanket No |
 | SMS / text-message consent | No | FROZEN → Phone | An SMS **verification** step is ManualFinish |
 | U.S. person (EAR, 15 CFR 772.1) | Yes. Other export-licence / foreign-person / legal-status wording ⇒ ManualFinish. Clearance-required or ITAR citizen-only roles: skip | FROZEN → Work authorization | The retired adapter answered Yes to "U.S. person" but No to EAR/export questions; a question containing both was undefined |
-| Comp range aligns / Office days | Yes | hardcoded | — |
-| Preferred Pronouns | He/Him | hardcoded | Only when that exact option exists |
+| Compensation alignment / Office days | User preference or decision; unknown is ManualFinish | current user facts | Never reuse the retired blanket Yes |
+| Preferred Pronouns | Verified profile/user answer only; otherwise leave optional blank | current user facts | Do not infer from a retired adapter |
 | Favorite video game / most played game | **deliberately not filled** | `AUTHENTIC_SHORTTEXT_SKIP_RX` | Classified as a human-only field ⇒ ManualFinish |
-| College / University | Boston University; The Ohio State University | FROZEN → Education | Matches `profile.education`. Any start/end date other than the master's graduation year (2023) ⇒ ManualFinish `education-date-required-unverified`; never invent dates |
+| College / University | Boston University; The Ohio State University | FROZEN → Education | Matches `profile.education`. Only recorded graduation end years (BU 2023, OSU 2021) may be used; other date details ⇒ ManualFinish `education-date-required-unverified`; never invent dates |
 | Years of experience | `floor(years since 2023-04)` = 3 as of 2026-10; "N+ years?" ⇒ Yes iff N ≤ 3 | FROZEN → Years of experience | The retired adapter hardcoded `5+`, which overstated the real figure. Never round up |
-| Free-text textarea with no matching FROZEN answer | `profile.summary`, only for generic intro prompts ("about you", "additional information", "anything else"). Optional and unrelated ⇒ leave blank. Required and question-specific (why this company, a project story, salary reasoning) ⇒ ManualFinish `unsupported-required:<label>` | `profile.summary` | The retired adapter pasted `profile.summary` into every textarea. A generic summary under a specific question is not a truthful answer |
+| Free-text textarea with no matching FROZEN answer | Optional and unrelated ⇒ blank. Required authoring/motivation ⇒ ManualFinish under POLICY; requested drafts use the materials stage | verified profile / POLICY | Never paste a generic summary into an unrelated question |
 | Resume upload | `_systemfield_resume`, default 1-page PDF | `resume_paths.default_1p_en` | The page has a **second** file input (top "Autofill" block); picking it yields 0 files |
 
 ---
@@ -72,7 +77,7 @@ embedded card and land on the `/application` full page.
    `form-not-loaded`, `resume-upload-missing`, non-submitting duplicates.
    **`platform-anti-bot` / `phone-rejected` / already-submitted never retry.**
 2. **Role filter** — `\bAI Trainer\b` ⇒ Skipped.
-3. **Open** — `chrome-use --session jobapply --browser yplmicro@gmail.com tab new --label ashby-<company> "<url>/application"`,
+3. **Open** — `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab new --label ashby-<company> "<url>/application"`,
    then wait for the page (`workflows/04-universal-web-apply.md` step 3); reuse the labelled tab if it already exists.
 4. **Identity guard** — the retired script required a Gmail tab for the `yplmicro@gmail.com` account in the
    same window as the application. It is now a check on every `profile:` line chrome-use prints (the first
@@ -80,26 +85,27 @@ embedded card and land on the `/application` full page.
    (`wrong-profile`, `END-OF-RUN.md` §5).
 5. **First fill pass** — all fields are lazily rendered: scroll the whole form top→bottom→top first. Fill text,
    then handle location dropdowns, extended booleans, and sponsorship separately.
-6. **`form-not-loaded`** → wait 15s and refill once.
+6. **`form-not-loaded`** → one bounded wait/reopen for visible form content before any fill; still absent ⇒ Blocked. Never refill an unknown page.
 7. **Phone** → fill `$JOB_APPLY_PHONE` last, right before the gate (FROZEN → Phone: `fill --from-env`, snapshot
    masking). A form that rejects it or demands +86 ⇒ ManualFinish `phone-rejected`.
 8. **`invalid-required-fields`** → refill verbatim once; still failing ⇒ ManualFinish
    `manual-finish-needed:invalid-required-fields`.
-9. **Three pre-submit reinforcements** — core reinforce → auth booleans (9 serial sub-steps; any failure ⇒
-   ManualFinish) → the pre-submit gate (`scripts/ats_pre_submit_gate.js`, see `workflows/04-universal-web-apply.md`:
-   danger text, invalid required items). The old profile/window consistency check is now the `profile:` check
-   in step 4.
+9. **Read back before Submit** — inspect actual text, selected options and the
+   attached filename; then run the read-only pre-submit gate. A displayed DOM
+   value/validity pass does not prove React state or submission. Correct a safe
+   omission once with real UI input; persistent failure is ManualFinish.
 10. **Submit** — blur+Tab the hear-about/LinkedIn fields first, then click the button whose text is exactly
     **`Submit Application`** (the page also has `Upload file` / `Replace` / `Yes` / `No`).
-11. **Poll for result** — 18s → 6s → 6s. Success = URL contains `/application-submitted` or `/application/success`;
-    or the page stays on `/application` with the submit button gone plus `Application Success` /
-    `Your application was successfully submitted` / `We'll contact you if there are next steps` /
-    `Thank you for your interest` / `We received your application`.
+11. **Read the result** — require a final role-specific success state, such as
+    `/application-submitted` or `/application/success`, or a matching application
+    receipt. A generic thank-you, disappearing button or code field alone is not
+    proof; email verification must finish first.
 12. **Already applied** → `already submitted your application|you have already applied` ⇒ record `Skipped`
     (the retired batch layer called this `DuplicateSubmitted`).
-13. **Failure** → on an S3 upload error, re-pick the resume and click Submit again only after the upload finished
-    and the gate is clean. Never click again after a danger/anti-bot message: ManualFinish with `platform-anti-bot`
-    (danger), before-code, or `submit-unverified:ashby`.
+13. **Failure** → inspect S3 upload errors before submission; a failed upload
+    may get one deliberate UI correction and attachment recheck. Once Submit has
+    an unverified outcome, do not resubmit in the same run. Danger/anti-bot text
+    is ManualFinish (`platform-anti-bot`); record uncertainty instead of retrying.
 14. **Exit-code semantics** (retired batch layer, kept only to decode old logs): `0` success · `1` submit
     unverified · `10` window check · `13-15` pre-submit checks · `20` blocked · `22` role skipped ·
     `124-125` timeout/exception.
@@ -140,21 +146,21 @@ embedded card and land on the `/application` full page.
 
 | Symptom | Cause | Response |
 |---|---|---|
-| Field looks filled, submit still says `Missing entry for required field` | Ashby is React-controlled; assigning `.value` never enters form state | Native setter + `input/change/blur`; otherwise real keyboard (⌘A → Backspace → insertText), then Tab out |
+| Field looks filled, submit still says `Missing entry for required field` | Ashby is React-controlled; assigning `.value` never enters form state | Use a real keyboard correction then Tab out; recheck once. Never inject setters; persistent failure is ManualFinish |
 | Yes/No looks highlighted but server state is empty | Many boards use `<button role=...>`, not native radios | Click the button found by label text; re-read `aria-checked/aria-pressed/data-state` or `input:checked`, and confirm `this field is required` disappears |
 | A radio exists but the wanted option never selects | Ashby uses opaque `value="on"` radios — matching must be by label text | Match by label; if `value==='on'` and the label doesn't match, **clear** it first, then select |
 | City/country typed but still empty | These are comboboxes — only a real option selection counts | Open → type → wait ~1.2s for `[role=option]` → ArrowDown+Enter or click; then re-read `input.value` |
 | Country lands on Dominican/Brazil/Ireland/Germany/Canada | The option list retains a previous selection | After selecting, verify the text matches `United States\|San Francisco\|Bay Area\|Remote`; otherwise clear and redo |
 | A valid boolean group "is missing" | Lazy rendering — unscrolled entries do not exist | Scroll the whole form to the bottom and back to the top before filling/clicking |
 | LinkedIn / how-did-you-hear filled but still reported missing | React StringField needs blur/Tab to commit | focus → blur → a real Tab per field |
-| `ERROR Resume_...pdf failed to upload` + `Failed to fetch (ashbyhq-infra-prd-…s3…)` | Ashby uploads directly to S3 and it failed | Reset the file input (up to 3 tries with a cross-selector fallback), wait 3–5s, then verify `files.length` |
+| `ERROR Resume_...pdf failed to upload` + `Failed to fetch (ashbyhq-infra-prd-…s3…)` | Ashby uploads directly to S3 and it failed | Inspect the live attachment control, make at most one deliberate UI re-upload before submission, then verify its filename/completed state; persistent failure is ManualFinish |
 | `WARNING We're updating your application (e.g. uploading files), please try again when they're finished` | Submitted before the upload landed | Wait until the upload indicator/attachment completes, then click Submit Application |
 | The attachment went somewhere else / 0 files | Two file inputs: top "Autofill from resume" (`Upload file`/`Replace`) and the real `#_systemfield_resume` | Only use `#_systemfield_resume`; fall back to the single `input[type=file]` if absent |
 | Top shows `Autofill completed! Please review the information we filled in for you below` | Uploading the resume triggered autofill | Review every field — autofilled values may not match this project's wording |
 | Wrong button clicked / Upload got clicked | The submit button must be exactly `Submit Application` | Never use position or "the first button"; distinguish `Yes`/`No`/`Replace`/`Upload file` |
 | False "submitted" verdict | `We couldn't submit` / `flagged as possible spam` also contain the word "application" | Exclude `couldn't submit\|unable to submit\|already applied\|received your application before` first |
 | A previously applied role gets re-applied | — | `you have already applied` ⇒ record `Skipped`, stop |
-| Repeated retries make the form worse | Clicking does not guarantee convergence | **Max 3 retries per boolean question**, then ManualFinish |
+| Repeated retries make the form worse | Clicking does not guarantee convergence | One deliberate real-UI correction, then ManualFinish; no retry loop |
 
 ---
 
@@ -208,7 +214,7 @@ complementing the 20-submissions-per-company cap. **Role-level**: `\bAI Trainer\
 4. **Email verification is an uncovered path.** `verify your application` and `Sign in` matched **zero** times in
    the retired adapter — there is no evidence of an Ashby email-verification flow. If one appears, it is new
    territory (the Greenhouse flow in `END-OF-RUN.md` §3 is the nearest model). [Email codes are agent-solvable per
-   `SKILL.md`: read the code from the yplmicro Gmail tab; a visible CAPTCHA or SMS check ⇒ ManualFinish.]
+   `POLICY.md`: read the code from the yplmicro Gmail tab; a visible CAPTCHA or SMS check ⇒ ManualFinish.]
 5. **The stale-job regex contains a bare `not found`**, which can misfire on normal copy. Verify by hand rather
    than abandoning.
 6. **Most of the 267 skip slugs have no recorded reason** — only a few comments in `ashby_apply_batch.py` are

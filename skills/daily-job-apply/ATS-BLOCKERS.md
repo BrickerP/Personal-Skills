@@ -1,6 +1,6 @@
 # ATS Blocker Log — how to read it (and how not to)
 
-> For **live** ops blockers and silent failures, prefer `FIELD-NOTES-1218.md` + `ATS-GREENHOUSE.md`. This file remains a decoder for the 2026-06 failure log only.
+> Historical decoder for the 2026-06 failure log only. For live work read [POLICY.md](POLICY.md), FIELD-NOTES and the current platform playbook. Any old adapter, selector or retry sequence quoted here is evidence to interpret, never an executable workflow.
 
 **Source**: `data/ats-evolution-log.jsonl`, cross-checked against `adapters/logs/*.jsonl`.
 Analysis dated 2026-10-15.

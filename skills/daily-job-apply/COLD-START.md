@@ -1,6 +1,8 @@
 # Cold-start — context-free agent entry | 冷启动（无需对话上下文）
 
-Read this file first on a fresh machine or new agent session. **No prior conversation context required.**
+Read this file before an application session through [job-search / apply](../job-search/workflows/apply.md). **No prior conversation context required.**
+
+Policy is in [POLICY.md](POLICY.md). The agent follows Markdown and reads the current page before each action. Helpers may inspect, dedupe, validate and record; they never run a browser fill/upload/submit loop.
 
 **Skill home (canonical):** `~/.codex/skills/daily-job-apply/`
 
@@ -44,7 +46,7 @@ The old Gmail same-window pairing check no longer exists. The `yplmicro@gmail.co
 
 ### Daily ~50 zero-gate preflight（每日约 50 条零门槛预检）
 
-Run this on the wp Mac **before** a volume run. Target for the weekday routine is **~50 verified zero-gate Greenhouse** submits, not 200 the same night unless the user overrides. All twelve must pass before the first submit. Canonical copy (same list the Grok Bot routine uses):
+Run this on the wp Mac **before** a volume run. Target for the weekday routine is **~50 verified zero-gate Greenhouse** submits, not 200 the same night unless the user overrides. Complete the preflight checks before the first submit, then preserve the cadence, stop and reporting rules throughout the run. This is the same preset used by the configured bot routine:
 
 1. Chrome-use probe: `chrome-use browsers` (Lu CONNECTED) and `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list --full` → `profile: Lu (Profile 2, yplmicro@gmail.com)`. Also run `TZ=Asia/Shanghai date`.
 2. Reconnect or open a new session name if hung (same `--browser`; do not retry a dead session). Record the rename.
@@ -56,8 +58,8 @@ Run this on the wp Mac **before** a volume run. Target for the weekday routine i
 8. **≥90s** between verified submits on the same platform family (routine floor; the wider 90–180s band still applies).
 9. Close the tab after each verified record. One active apply tab.
 10. Stop early if ManualFinish / Blocked dominate the first ~10 probes. Report the four gates. Do not burn the hour.
-11. Proof is only a URL containing `/confirmation`, or a security-code field. `bad:0` / `checkValidity()` pass is not a submit.
-12. Deliver the run summary to the user in the Grok Bot chat (including a short status when nothing verifiable was submitted).
+11. Submitted requires a final application-success page/state or a matching application-received email. A security-code field is **verification pending**; complete the code step and confirm final success first. A code-delivery email, `bad:0` or `checkValidity()` pass is not proof.
+12. Reply with the run summary on the current calling surface, including when nothing verifiable was submitted. A configured bot routine uses its existing delivery channel; do not send an additional cross-chat message or create new delivery without user authorization.
 
 Visible CAPTCHA / hCaptcha / SMS stay user blockers → `ManualFinish`. Do not solve them.
 
@@ -98,7 +100,7 @@ Until the user says LinkedIn review is resolved: **no** LinkedIn Easy Apply, pro
 | Tracker (default) | `~/.codex/skills/daily-job-apply/state/tracker.csv` |
 | Env overrides | `~/.config/daily-job-apply/env` |
 | End-of-run checklist | `~/.codex/skills/daily-job-apply/END-OF-RUN.md` |
-| Full skill rules | `~/.codex/skills/daily-job-apply/SKILL.md` |
+| Application policy | `~/.codex/skills/daily-job-apply/POLICY.md` |
 
 ## After the run
 

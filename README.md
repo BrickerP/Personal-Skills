@@ -20,14 +20,17 @@ git clone https://github.com/BrickerP/Personal-Skills.git ~/projects/personal/sk
 ~/projects/personal/skills/scripts/install.sh --status   # 检查链接完整性
 ```
 
-## 可选依赖（首次使用对应 skill 时）
+## 求职入口与执行方式
 
-```bash
-# 求职流水线（Ashby/Greenhouse 适配器的 node 依赖）
-cd skills/daily-job-apply/adapters && npm install
+- **统一入口**：[job-search](skills/job-search/SKILL.md)。按意图进入搜索、筛选、简历、申请材料、投递、面试或复盘，只读取当前阶段需要的 Markdown。
+- **页面驱动**：agent 读当前页面、判断下一步、用 chrome-use 逐步操作并回读验证。没有填表/上传/提交批量脚本，也不复活退休 CDP/Playwright 引擎。
+- **辅助工具**：去重、公共岗位 API、哈希与只读有效性校验、确认后的记账可使用既有 helpers；不能由脚本决定答案或自动提交。
+- `daily-50` 是投递阶段的例行预设，不是另一个 skill 或 runner。定时器、真实身份、FROZEN 答案和提交门禁保持原有规则。
+- `daily-job-apply`、`job-apply-automation`、`job-search-orchestrator` 保留为旧调用的兼容入口，Codex metadata 关闭其隐式调用。其他工具不支持该 metadata 时，仍由兼容说明转到统一入口。
+- `linkedin-application-agent` 仅保留冻结说明；`gh-resume-builder` 继续作为独立的经历证据/展示工具，在简历阶段按需调用。
+- 安装求职能力需要 `job-search` 与 `daily-job-apply` 资源目录一起存在。现有 [安装器](scripts/install.sh) 会链接它们；只复制一个旧 skill 的旧 zip 不再是完整安装。
 
-# pdf-sanitize 首次运行自动创建自己的 .venv（PyMuPDF 等）
-```
+求职浏览器操作需要已连接真实 Chrome 的 chrome-use。无需安装旧 adapters 的 Node/Playwright 依赖；旧脚本留作历史，不进入活动工作流。pdf-sanitize 首次运行仍按自己的 skill 创建 .venv。
 
 ## 约定
 
@@ -36,9 +39,9 @@ cd skills/daily-job-apply/adapters && npm install
 - OMX 框架自带 skills（autopilot/ralph/ultrawork/team 等 26 个）不在本库 —— 由 `omx setup` 管理。
 - OpenCode 内置 skills（opencode/report/playwright 等）不在本库。
 
-## Skills 清单（34）
+## Skills 清单
 
-**求职**：daily-job-apply · job-apply-automation · job-search-orchestrator · linkedin-application-agent · gh-resume-builder
+**求职**：[job-search](skills/job-search/SKILL.md)（生命周期入口）· gh-resume-builder（证据/展示）；旧求职名字只作兼容，LinkedIn 包冻结
 **生活/订阅**：dating-time · daily-read · ai-daily · fs-street
 **浏览器**：chrome-use · browser-use · browser-control
 **云/支付/运维**：cf-cli · aws-cli · stripe-cli-ops · codex-usage · codex-wallpaper · [grok-remote](skills/grok-remote/SKILL.md)

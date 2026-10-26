@@ -2,7 +2,7 @@
 
 **Window**: through 2026-10-25. **Ledger**: `~/job-hunt/tracker.csv` (1,218 applied / 216 ManualFinish / 7 Blocked / 0 duplicate ATS keys).
 
-This file is the *empirical* layer. `SKILL.md` says what is allowed; this file says what actually happens
+This file is the *empirical* layer. `POLICY.md` says what is allowed; this file says what actually happens
 on the page after you have filled 1,200 of them. Read it before a run, and update it whenever a
 fingerprint below stops being true.
 
@@ -48,7 +48,8 @@ answers. Continuing to probe produces zero submissions per hour.
 Each of these *looks* fine and wastes a submission or an hour. Ordered by cost.
 
 1. **Placeholder submit that never lands.** Greenhouse "Submit application" can no-op while every field
-   reports valid. Always confirm the URL contains `/confirmation`, or the security-code field appears.
+   reports valid. Require a final success page/state or a matching application-received receipt.
+   A security-code field is verification pending; complete that step before counting a submission.
    A green `bad:0` is *not* proof of submission.
 2. **Stale error text after a successful submit.** After the code step, `p[id$=-error]` often still shows
    the pre-submit errors. Trust `/confirmation`, not the error nodes.
@@ -75,7 +76,7 @@ Each of these *looks* fine and wastes a submission or an hour. Ordered by cost.
 10. **Greenhouse code throttling is per company.** A third request in a day may never arrive (Braze).
     Re-read the *last* `.a3s` body; the thread collapses and the newest code is at the bottom.
 11. **City / `#candidate-location` commit.** `type → ArrowDown → Enter` often leaves the field empty and surfaces `candidate-location-error`. Prefer: type city text → **click the matching list option** (or chrome-use `pick` when it works) → re-read the value. If still empty and the board historically submits anyway (Brex/SingleStore), submit once and trust errors / `/confirmation`.
-12. **Session hang / chrome-use version pin.** If `jobapply2` sticky-hangs, open a new session name with the same `--browser` instead of retrying the dead one. `pick` may be flaky; installed chrome-use version can differ from the binary still running until the extension/daemon restarts. See `job-apply-automation` → "Session hygiene". The retired session name `jobapply` is not reused.
+12. **Session hang / chrome-use version pin.** If `jobapply2` sticky-hangs, open a new session name with the same `--browser` instead of retrying the dead one. `pick` may be flaky; installed chrome-use version can differ from the binary still running until the extension/daemon restarts. See the [browser reference](../job-search/references/browser-apply.md#uncertainty-and-session-hygiene). The retired session name `jobapply` is not reused.
 
 ---
 
@@ -201,8 +202,8 @@ Mirror of `COLD-START.md` → Daily ~50 zero-gate preflight. Do not start volume
 8. ≥90s between verified submits.
 9. Close the tab after each verified record. One active apply tab. After navigation, re-snapshot before the next click (refs and viewport are stale).
 10. Stop early if ManualFinish / Blocked dominate the first ~10 probes.
-11. Proof only `/confirmation` or a security-code field. CAPTCHA/SMS stay user blockers → ManualFinish.
-12. Deliver the run summary in the Grok Bot chat.
+11. Proof is a final success page/state or matching application-received receipt. A security-code field is verification pending; complete it and confirm final success. CAPTCHA/SMS stay user blockers → ManualFinish.
+12. Return the run summary in the calling surface. An existing bot routine uses its configured delivery; do not send to another chat from an ordinary invocation.
 
 Recorded bio facts only: DOB `1999-08-03` when asked; OSU graduation `2021`. Years floor stays **3**. Do not invent any other bio field. Before ending a run: duplicate audit. New fingerprints belong in a commit to Personal-Skills, not only in local notes.
 

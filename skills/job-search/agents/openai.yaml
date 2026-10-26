@@ -1,0 +1,4 @@
+interface:
+  display_name: "Job Search"
+  short_description: "Find roles, prepare materials, apply and prepare interviews"
+  default_prompt: "Use $job-search to handle the requested stage of my job search and report the result and next action."

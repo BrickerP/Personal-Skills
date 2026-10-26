@@ -1,27 +1,43 @@
-# Channel 1: Referral workflow
+# Referral and outreach
 
-Use for targeted Bay Area / Remote US AI infra roles when a company and role are known, or when building warm referral coverage before applying.
+Use from [job-search](../../job-search/SKILL.md) when a user wants a referrer,
+public contact research, a referral message or a specifically authorized send.
+Finding a contact or drafting a message does not authorize contacting anyone.
+This is an optional branch of the lifecycle, not a daily volume requirement.
 
-## Steps
+## Research and draft
 
-1. Preflight `guards/stealth-rules.md` (current outbound policy — stealth retired 2026-10-18).
-2. Open the target company careers/JD page and capture the JD text.
-3. Identify 3-5 relevant employees: same role family, AI infra/platform/devtools/backend, not current-company current/former employees, not obvious close connections to current employer.
-4. Draft one <=80-word message from `templates/referral-message.md` using `data/profile.json`.
-5. Dry-run recipient, reason, message, and whether a connection request or message will be sent. Wait for explicit confirmation before Send/Connect.
-6. If a referral is offered, follow the company ATS rule below and update `~/job-hunt/tracker.csv`.
+Read the target role and relevant profile evidence, then the current
+[outbound content rules](../guards/stealth-rules.md). Identify relevant contacts
+from public company/team sources or user-provided contacts, citing why each is
+relevant. Do not automatically inspect LinkedIn or use its launch, account or
+message flows while the freeze stands. If no permitted contact source exists,
+report the gap instead of inventing an address or relationship.
 
-## ATS/referral rules
+Use the existing [referral template](../templates/referral-message.md) as a
+starting point when useful. Draft concise, truthful text tied to the actual
+role and supported experience. Real approved employers may be named; confidential
+internal details may not. Do not claim a referral already happened, select a
+referrer in a form or invent how the candidate knows a person.
 
-- Greenhouse: apply only after referral link/invite if the employee says the referral is submitted; otherwise submit normally and note referrer.
-- Lever: use referral link if provided; otherwise normal application plus referrer note if a field exists.
-- Ashby: referral links are common; preserve the source URL in tracker.
-- Workday: employee referral often happens internally before/after application; ask the referrer for exact email/name formatting, then dry-run before submitting.
+## Delivery boundary
 
-## Default message constraints
+Show the intended recipient, channel and exact message. Send only when the
+human explicitly authorizes that recipient/channel/content, whether in the
+current request or a prior still-applicable instruction. Use an available
+purpose-built connected tool when it fits; otherwise operate the live page
+through chrome-use, reading before each action. No bulk outreach script,
+selector replay or automatic follow-up loop is introduced here.
 
-- <=80 words.
-- No current employer legal name.
-- Mention US Permanent Resident only if helpful or if sponsorship is likely relevant.
-- Ask for referral or quick routing advice; do not demand time.
-- Prefer email follow-up if possible.
+LinkedIn remains frozen even if an ordinary referral workflow is requested.
+Use a permitted channel only when the user authorizes it; never silently switch
+channels or accounts. Stop on a challenge or access restriction.
+
+## Referral and application handoff
+
+Keep a provided referral link and source attribution associated with the exact
+role. Follow the employee/employer's actual referral sequence rather than a
+universal ATS timing assumption. A referral offered is not a referral submitted
+or an application completed. Continue to [Apply](../../job-search/workflows/apply.md)
+only under application authorization and its normal checks. Record only the
+actual supported contact/application state using existing fields.
