@@ -28,7 +28,7 @@ Think of this skill as a NOC dashboard, not a worker. Each run produces a 1-page
 
 ## When NOT to use
 
-- ❌ "Apply to these jobs" → route to `daily-job-apply`
+- ❌ "Apply to these jobs" → route to `daily-job-apply` (policy) then `job-apply-automation` (loop)
 - ❌ "Update my resume from commits" → route to `gh-resume-builder`
 - ❌ "Fill out this LinkedIn Easy Apply" → **do not run it**. Easy Apply is FROZEN (`daily-job-apply` COLD-START). Do not route a batch to `linkedin-application-agent`
 - ❌ "Edit build_resumes.py" → just edit it directly

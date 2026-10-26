@@ -9,8 +9,9 @@ There are **no scripts** for this. You read the page with `chrome-use`, decide
 what each field wants, fill it, check it, submit it, and record it. Fixed
 scripts break the moment a board changes one question — judgement does not.
 
-Policy (frozen answers, what must be skipped, ManualFinish rules) lives in the
-`daily-job-apply` skill. This skill is the operating loop and the traps.
+Policy (frozen answers, the ManualFinish class taxonomy, board playbooks) lives in
+`daily-job-apply`. This skill is the operating loop and the traps. **When the two
+disagree, policy wins** — fix the policy file, don't encode a workaround here.
 
 ## Pre-flight (30 seconds, every session)
 

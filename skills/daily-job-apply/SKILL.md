@@ -1,11 +1,27 @@
 ---
 name: daily-job-apply
-description: Use when the user wants a daily workflow for US/Bay Area AI Infra, ML Systems, AI Platform, agent infrastructure, backend AI platform, or developer-tools job search. Covers resume/profile context, chrome-use LinkedIn preparation, referrals, Easy Apply batches, weekly LinkedIn maintenance, privacy guardrails, templates, and tracker updates. (Stealth retired 2026-10-18 — real names allowed; see guards/stealth-rules.md.)
+description: Policy layer for the US/Bay Area AI Infra, ML Systems, AI Platform, agent-infrastructure and developer-tools job search — frozen answers, the ManualFinish class taxonomy, Greenhouse/Ashby playbooks, tracker/ledger rules and privacy guardrails. Pair with job-apply-automation (the browser loop). LinkedIn Easy Apply is frozen since 2026-10-15. (Stealth retired 2026-10-18 — real names allowed.)
 ---
 
 # Daily Job Apply
 
-Run a Bay Area-focused AI infrastructure job-search workflow for Yupeng Lu. This is the top-level workflow skill; `linkedin-application-agent` (the mechanical LinkedIn Easy Apply subroutine) is frozen and not runnable since 2026-10-15.
+Run a Bay Area-focused AI infrastructure job-search workflow for Yupeng Lu.
+
+## Skill map — which skill owns what
+
+Five job-related skills exist. **Only two are needed to actually apply**; the rest are a different phase.
+
+| Skill | Owns | Status |
+|---|---|---|
+| **daily-job-apply** (this one) | **Policy**: frozen answers, ManualFinish class taxonomy, ATS playbooks, tracker/ledger rules, privacy | active |
+| **job-apply-automation** | **Execution**: the browser loop, verification rules, form traps | active |
+| job-search-orchestrator | Morning/evening triage dashboard; routes to the two above. Never applies | active, optional |
+| gh-resume-builder | Refresh resume *markdown* from merged GitHub PRs. Does not touch application PDFs | active, different phase |
+| linkedin-application-agent | LinkedIn Easy Apply | **frozen 2026-10-15, not runnable** |
+
+Split rule: this skill says *what is allowed*; `job-apply-automation` says *how to do it on the page*.
+Do not duplicate policy there — link back here.
+ This is the top-level workflow skill; `linkedin-application-agent` (the mechanical LinkedIn Easy Apply subroutine) is frozen and not runnable since 2026-10-15.
 
 ## Doc index
 
