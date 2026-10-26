@@ -72,7 +72,8 @@ Each of these *looks* fine and wastes a submission or an hour. Ordered by cost.
 8. **Two "Country" dropdowns.** The first is the phone dial code, the second is residence country.
    Filling the wrong one leaves the real field empty and the submit silently fails on phone.
 9. **`intl-tel-input` country listbox stays expanded** and swallows every click on the page. If clicks stop
-   landing, check `#iti-0__country-listbox` visibility, select the country, or dispatch `mousedown`.
+   landing, inspect the current country listbox and select the option with a real UI click or keyboard input.
+   Do not dispatch synthetic events; if it still cannot commit, record ManualFinish.
 10. **Greenhouse code throttling is per company.** A third request in a day may never arrive (Braze).
     Re-read the *last* `.a3s` body; the thread collapses and the newest code is at the bottom.
 11. **City / `#candidate-location` commit.** `type → ArrowDown → Enter` often leaves the field empty and surfaces `candidate-location-error`. Prefer: type city text → **click the matching list option** (or chrome-use `pick` when it works) → re-read the value. If still empty and the board historically submits anyway (Brex/SingleStore), submit once and trust errors / `/confirmation`.
@@ -165,7 +166,7 @@ interview-recording opt-out is allowed.
 | HN "Who is hiring" | **low yield** — October thread has 56 Greenhouse links; after `html.unescape()` only 32 are new and nearly all are Senior/Staff/Principal |
 | **Software roles at hardware/robotics/chip companies** | **best remaining** — Tenstorrent (5), Figure (7), SambaNova, Relativity |
 | Tracker rows marked `skip-email-verification` | **retryable** — 10 existed, 2 recovered for free (Upstart, Vercel); the rest re-checked and found to require essays or were Senior |
-| Gmail for outcomes | must be swept per run — but through 1,218 applications there have been **zero interview invites** from this funnel |
+| Gmail for outcomes | Historical 1,218-application snapshot recorded zero interview invites; inspect current outcomes through the Review stage when requested, not as an automatic side effect of applying |
 
 HN extraction gotcha: Algolia returns HTML-escaped text (`https:&#x2F;&#x2F;…`).
 `html.unescape(text)` **before** the regex, or you get 0 matches and wrongly conclude the thread is empty.
@@ -184,7 +185,7 @@ HN extraction gotcha: Algolia returns HTML-escaped text (`https:&#x2F;&#x2F;…`
   and ask the user for the *one* answer that unlocks the group.
 - Ledger vs tracker drift is real: a later ManualFinish upsert can overwrite a real submission. When a
   count looks wrong, grep the ledger for the company and repair the tracker row.
-- After a batch: optional Gmail sweep mapping reject/ack → tracker `Rejected` / `Ack` (one email → one row). **Do not** send follow-ups on auto-ack mail.
+- During Apply, mailbox access is for the current application's verification code or receipt. Use [Review](../job-search/workflows/review.md) for an authorized outcomes review; status-only produces proposals, and record changes require the current explicit update/reconcile request or confirmation. **Do not** send follow-ups on auto-ack mail.
 
 ---
 
@@ -212,5 +213,6 @@ Recorded bio facts only: DOB `1999-08-03` when asked; OSU graduation `2021`. Yea
 ## 7. Handoff
 
 Session-level state, environment facts and the open decisions live in **`~/job-hunt/HANDOFF.md`**.
-Read it first when picking this up cold: it holds the current counts, the Chrome session/profile
-facts, the four policy gates that need the user, and the ranked next actions.
+Read it when present when picking this up cold: it may hold counts, Chrome session/profile
+facts, unresolved policy gates and ranked actions. If absent, use the existing records and current
+preflight; do not invent missing handoff facts or block an otherwise valid request merely on absence.
