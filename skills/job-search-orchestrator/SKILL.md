@@ -1,35 +1,60 @@
 ---
 name: job-search-orchestrator
-description: Daily entry-point dashboard for Yupeng's US/Bay Area job search. Scans local state (curated PDFs, mined markdown, application ledger, Gmail, LinkedIn replies, GitHub commits) and produces a single triage report telling the user what to do next — refresh resume, run daily applications, triage Gmail, finish ManualFinish tabs, prep interviews, fix hash drift. Does NOT take any action itself; only routes to the right sub-skill (gh-resume-builder, daily-job-apply, etc.) and shows pending work. Use as the morning/evening "what should I do today" command.
+description: Unified entry `$job-search` + task for Yupeng's US/Bay Area job search. Routes into one phase (search, screen, resume, materials, interview, or progress triage) and stops there; only explicit apply phrases enter real submit via daily-job-apply + job-apply-automation. Default still scans local state (curated PDFs, mined markdown, application ledger, Gmail, LinkedIn replies, GitHub commits) and produces a single triage report. Does NOT apply, email, or edit resumes itself.
 ---
 
 # Job Search Orchestrator
 
-The single daily entry point for Yupeng's job search. Read state, decide, route. **Never apply, never email, never edit resumes** — those are the job of sub-skills (`gh-resume-builder`, `daily-job-apply`).
+The single daily entry point for Yupeng's job search. The user invokes **`$job-search` + a task**; this skill picks the phase and stops there. Read state, decide, route. **Never apply, never email, never edit resumes** — those are the job of sub-skills (`gh-resume-builder`, `daily-job-apply`, `job-apply-automation`).
 
 **Standing override (2026-10-25).** LinkedIn Easy Apply is **FROZEN** — do not schedule it and do not route a batch to `linkedin-application-agent`. The weekday routine is **~50 verified zero-gate Greenhouse** submits via `daily-job-apply` + `job-apply-automation`, chrome-use session **`jobapply2`** (`--browser yplmicro@gmail.com`, Lu Profile 2). The old "weekly target 20" and "Easy Apply cap 25" lines below do not override that. The BJT 09:00–19:00 write ban was retired with stealth (2026-10-18); it must not block external ATS. The standing routine clock is still 21:00 Asia/Shanghai.
 
+## User entry: $job-search
+
+Going forward the user invokes **`$job-search` + a concrete task**. This orchestrator decides which phase to enter. Search, screen, resume, materials, interview, and progress each stop in their phase. Do not continue into another phase.
+
+**Only** phrases like `开始投递`, `继续 daily-50`, and `按 daily-50 继续投递` enter the real-submit path: preflight per role via `daily-job-apply` policy, then the `job-apply-automation` browser loop. Stop on blockers. Do not invent frozen answers; salary, Discipline, essay, arbitration, the Twilio blocklist, and the resume filename stay where `daily-job-apply` already defines them. LinkedIn Easy Apply stays **FROZEN** — do not route a batch to `linkedin-application-agent`. Live submits still follow the standing override above (weekday ~50 verified zero-gate Greenhouse, chrome-use session `jobapply2`, Lu Profile 2).
+
+A progress report may *name* `daily-job-apply` as the next action. Naming it is not permission to submit. Enter the real-submit path only on an explicit apply phrase.
+
+Default one-liner (no concrete phase task):
+
+`$job-search 看一下当前求职进度，告诉我今天最该做什么。` → this skill's triage report.
+
+| Intent | Example utterance | Route to |
+|---|---|---|
+| Search roles | `$job-search 找美国/Bay Area 的 AI Infra 岗位，先给我列表` | this orchestrator / search only — shortlist, no apply |
+| Screen/rank | `$job-search 评估这几个岗位，按匹配度排序：<链接>` | evaluate + rank, no apply |
+| Resume pick | `$job-search 看这个岗位适合用哪份简历，需要调整什么` | gh-resume-builder / resume advice; do not rewrite application PDFs unless asked |
+| Materials | `$job-search 给这个岗位写求职信，先给我审阅` | draft cover letter for review only |
+| Real apply | `$job-search 按 daily-50 继续投递` | daily-job-apply (policy) then job-apply-automation (browser loop) — REAL submits |
+| Interview prep | `$job-search 准备 Acme 第二轮技术面，重点是存储设计` | interview prep only |
+| Progress | `$job-search 看今天的投递、回复和待处理事项` | triage dashboard (this skill’s default) |
+
 ## Mental model
 
-Think of this skill as a NOC dashboard, not a worker. Each run produces a 1-page triage report with:
+Think of this skill as a NOC dashboard, not a worker. A **progress** task, or the default one-liner, produces a 1-page triage report with:
 - **System health**: hash drift, file presence, skill consistency
 - **Pipeline status**: where things sit (applied / waiting / interview / ghosted)
 - **Today's recommended actions** (ranked by impact × urgency)
 - **Routing**: which sub-skill to invoke for each action
 
+Any other `$job-search` phase stops in that phase. Do not run the 11-check dashboard for it, and do not submit.
+
 ## When to use
 
-- "What should I do today for my job search?"
+- `$job-search` + a concrete task — route with **User entry: $job-search** and stop in that phase.
+- "What should I do today for my job search?" / `$job-search 看一下当前求职进度，告诉我今天最该做什么。`
 - "Morning check / evening check"
 - "Status of my job search"
 - "Should I update my resume today?"
 - "Anything I missed?"
-- Default first action whenever the user opens a job-search conversation without a specific sub-task.
+- Default first action whenever the user opens a job-search conversation without a specific phase task (triage report).
 
 ## When NOT to use
 
-- ❌ "Apply to these jobs" → route to `daily-job-apply` (policy) then `job-apply-automation` (loop)
-- ❌ "Update my resume from commits" → route to `gh-resume-builder`
+- ❌ Real submit — only `开始投递` / `继续 daily-50` / `按 daily-50 继续投递` leave this skill, and then only as a route to `daily-job-apply` (policy) then `job-apply-automation` (loop). This skill still does not submit.
+- ❌ "Update my resume from commits" → route to `gh-resume-builder` (a `$job-search` resume question stays advice; do not rewrite application PDFs unless asked)
 - ❌ "Fill out this LinkedIn Easy Apply" → **do not run it**. Easy Apply is FROZEN (`daily-job-apply` COLD-START). Do not route a batch to `linkedin-application-agent`
 - ❌ "Edit build_resumes.py" → just edit it directly
 
