@@ -52,8 +52,8 @@ Run this on the wp Mac **before** a volume run. Target for the weekday routine i
 2. Reconnect or open a new session name if hung (same `--browser`; do not retry a dead session). Record the rename.
 3. PDF hash vs `pdf-hashes.txt` (§1). STOP on drift. Confirm the resume PDF path exists.
 4. Profile Lu confirmed whenever a `profile:` line prints. Anything else = STOP `wrong-profile`.
-5. Blocked companies loaded from `data/blocked-companies.json`. Skip every listed key. **Twilio is listed** — Skip `company-blocked` even when the form looks clean. Do not delete it from the file. Confirm `JOB_APPLY_PHONE` exists in `~/.config/daily-job-apply/env` (never echo the number).
-6. Dedupe by job-id path-form **before open**: grep the tracker for `(?:jobs/|token=)(\d{4,})`. `boards.greenhouse.io`, `job-boards.greenhouse.io`, and `embed/job_app?token=` are the same job.
+5. Resolve the effective blocked-company list in the helper's actual order: `~/job-hunt/data/blocked-companies.json`, then skill-local `data/blocked-companies.json` (first nonempty list, not a merge). Skip every listed key. **Twilio is listed** — Skip `company-blocked` even when the form looks clean. Do not delete a key or infer that an old list expired. Confirm `JOB_APPLY_PHONE` exists in `~/.config/daily-job-apply/env` (never echo the number).
+6. Before opening **each role**, run `job_dedupe_check.py` as workflow 04 specifies. Only exit 0 plus final JSON `ok: true` permits continuation; blocked/duplicate/cap, missing output or an exception stops work. Job-id path-form checks supplement this: `boards.greenhouse.io`, `job-boards.greenhouse.io`, and `embed/job_app?token=` can be the same job. A grep or sourcing filter alone cannot replace the company check.
 7. Zero-gate Greenhouse queue only for this routine.
 8. **≥90s** between verified submits on the same platform family (routine floor; the wider 90–180s band still applies).
 9. Close the tab after each verified record. One active apply tab.
@@ -92,7 +92,7 @@ Until the user says LinkedIn review is resolved: **no** LinkedIn Easy Apply, pro
 | Apply workflow (per-role procedure, FROZEN answers, pre-submit gate) | `~/.codex/skills/daily-job-apply/workflows/04-universal-web-apply.md` |
 | Platform playbooks | `~/.codex/skills/daily-job-apply/ATS-GREENHOUSE.md`, `ATS-ASHBY.md`, `ATS-BLOCKERS.md` |
 | Pre-submit gate | `~/.codex/skills/daily-job-apply/scripts/ats_pre_submit_gate.js` |
-| Blocked companies | `~/.codex/skills/daily-job-apply/data/blocked-companies.json` |
+| Blocked companies | `~/job-hunt/data/blocked-companies.json` first; skill-local `data/blocked-companies.json` fallback |
 | GH skip boards | `~/.codex/skills/daily-job-apply/data/gh-skip-boards.json` |
 | GH embed skip domains | `~/.codex/skills/daily-job-apply/data/embed-career-domains.json` |
 | Ashby skip slugs | `~/.codex/skills/daily-job-apply/data/ashby-skip-slugs.json` |

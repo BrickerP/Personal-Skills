@@ -18,6 +18,15 @@ stage; establishing a profile is not a mandatory first step on every request.
   `~/Documents/resumes`. Use the profile's selected PDF path when available.
 - Do not print the environment, phone values, or the entire personal profile.
 
+**Existing helper limitation:** `job_dedupe_check.py` does not consume those
+work-directory/tracker overrides. It currently reads `~/job-hunt/tracker.csv`
+and `~/job-hunt/application-ledger.md`; its blocklist preference is
+`~/job-hunt/data/blocked-companies.json`, then the skill-local copy, first
+nonempty list. Confirm those are the intended active records before relying on
+the check. If custom configuration points elsewhere, stop application work and
+surface the mismatch; do not silently check a different history or replace
+files to make a check pass. Missing/bad list errors are never a passed check.
+
 ## Sources and ownership
 
 | Source | Use |

@@ -48,8 +48,12 @@ files; never copy personal data into new skill/workflow documents.
   roles, then reasonable Backend / Full-stack / Platform / Infra / ML / AI roles.
 - Dedupe **before opening** a role. Duplicate, `company-blocked` and cap results
   are hard stops. Never exceed 20 applications/company across all time.
-  `data/blocked-companies.json` wins over clean-form notes, including Speechify
-  and Twilio. Never remove a key to proceed.
+  The helper first reads `~/job-hunt/data/blocked-companies.json`, then falls
+  back to the skill's `data/blocked-companies.json` when the first has no nonempty
+  list. The effective list wins over clean-form notes, including Speechify and
+  Twilio. Never remove a key or infer expiration from a file's age to proceed.
+  This per-role check belongs to Apply, not an optional dashboard. Only exit 0
+  with final `ok: true` allows continuation; failed or missing checks stop work.
 - Browser: `chrome-use`, Lu / `yplmicro@gmail.com`, session `jobapply2`.
   Pin `--browser yplmicro@gmail.com` on every start-capable command. Every
   printed `profile:` line must match Lu (Profile 2, yplmicro@gmail.com).

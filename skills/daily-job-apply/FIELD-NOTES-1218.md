@@ -197,8 +197,8 @@ Mirror of `COLD-START.md` → Daily ~50 zero-gate preflight. Do not start volume
 2. Reconnect or new session name if hung (same `--browser`). Never grant chrome-use `auth always`.
 3. PDF hash vs `pdf-hashes.txt`. STOP on drift.
 4. Profile Lu confirmed whenever `profile:` prints.
-5. `data/blocked-companies.json` loaded. Twilio (`twilio`) if listed = Skip `company-blocked`. `JOB_APPLY_PHONE` exists in env (never echo).
-6. Dedupe by `(?:jobs/|token=)(\d{4,})` before open. boards / job-boards / embed token are one job.
+5. Load the helper's effective list: `~/job-hunt/data/blocked-companies.json` first, skill-local `data/blocked-companies.json` fallback (first nonempty, not merged). Twilio (`twilio`) if listed = Skip `company-blocked`. `JOB_APPLY_PHONE` exists in env (never echo).
+6. Run `job_dedupe_check.py` for every company/role/URL before open; only exit 0 and final JSON `ok: true` passes. Errors/missing output stop work. Job-id checks supplement, never replace, it: boards / job-boards / embed token are one job. This check is part of Apply, regardless of whether the dashboard was used.
 7. Zero-gate Greenhouse queue only for this routine.
 8. ≥90s between verified submits.
 9. Close the tab after each verified record. One active apply tab. After navigation, re-snapshot before the next click (refs and viewport are stale).

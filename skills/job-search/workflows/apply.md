@@ -17,6 +17,25 @@ profile, curated PDF and application records from
 3. Consult [browser reference](../references/browser-apply.md) for session
    hygiene, rich controls, email verification and uncertain outcomes.
 
+## Required check for every role
+
+Before opening each application, run the existing `job_dedupe_check.py` command
+from workflow 04 for that exact company, role and URL. This is part of Apply,
+including direct requests and legacy callers; running the Review/dashboard is
+not a prerequisite and cannot substitute for this check.
+
+Continue only when the helper exits **0** and its final JSON verdict is
+`ok: true`. `company-blocked`, duplicate and cap results stop the role. A missing
+or unreadable list, exception, empty output or an unparseable result stops work;
+never treat a failed check as permission. Sourcing output and clean-form notes
+cannot override a block. Record the check outcome using existing notes.
+
+The helper reads `~/job-hunt/data/blocked-companies.json` first, then the skill's
+`data/blocked-companies.json`, selecting the first nonempty list rather than
+merging them. It currently reads history from fixed `~/job-hunt` paths; see
+[shared state](../references/shared-state.md) before using custom runtime paths.
+Age alone does not expire a block; changes to the list require the user's decision.
+
 ## Agent-driven work
 
 The Markdown procedure guides the agent; it is not a browser program. Open one
