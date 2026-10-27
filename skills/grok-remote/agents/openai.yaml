@@ -2,3 +2,5 @@ interface:
   display_name: "Grok Remote"
   short_description: "Run commands on existing Grok-connected Macs"
   default_prompt: "Use $grok-remote to list my online computers and verify the selected Mac before running my requested command."
+policy:
+  allow_implicit_invocation: false
