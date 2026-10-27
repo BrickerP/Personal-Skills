@@ -1,6 +1,8 @@
 ---
 name: daily-job-apply
 description: Compatibility entry for existing daily-50 prompts. Read job-search's apply workflow; application policy and ATS resources remain here. New job-search requests use job-search.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Daily Job Apply — compatibility entry

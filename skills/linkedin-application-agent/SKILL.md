@@ -1,6 +1,8 @@
 ---
 name: linkedin-application-agent
 description: Frozen compatibility entry for the retired LinkedIn application engine. No runnable workflow; use job-search for supported job-search tasks.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Frozen LinkedIn application entry

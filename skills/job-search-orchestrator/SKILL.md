@@ -1,6 +1,8 @@
 ---
 name: job-search-orchestrator
 description: Compatibility entry for the former job-search dashboard. Explicit legacy callers route to job-search Review; new job-search requests use job-search.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Job-search dashboard compatibility entry

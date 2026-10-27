@@ -1,6 +1,8 @@
 ---
 name: job-apply-automation
 description: Compatibility entry for existing prompts naming the browser operating loop. Follow job-search's Markdown apply workflow; this is not a script or batch runner.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Job Apply Automation — compatibility entry
