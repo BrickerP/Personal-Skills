@@ -1,112 +1,73 @@
-# INSTALL.md — daily-job-apply self-contained skill
+# Install the job-search workflows
 
-All runtime scripts live under `~/.codex/skills/daily-job-apply/`. No `~/Downloads/.omx` or scattered `~/job-hunt/scripts` required for new installs.
+The public entry is [job-search](../job-search/SKILL.md). The
+`daily-job-apply` directory holds application policy, FROZEN answers, platform
+playbooks and deterministic helpers used by that entry. Install them together.
 
----
+## Repository install
 
-## Fresh install (recommended)
+Clone `BrickerP/Personal-Skills` to the location you use as the canonical skill
+source, then run its `scripts/install.sh`. It links the skills into Codex,
+Claude Code, Cursor and the agents compatibility directory. Use
+`scripts/install.sh --status` to inspect links. Do not replace an existing
+checkout or real skill directory containing local changes; compare and back it
+up before changing its link.
 
-```bash
-unzip cookiy-job-apply-skill-FULL-20260617.zip -d /tmp/job-apply-pack
-cp -R /tmp/job-apply-pack/skills/daily-job-apply ~/.codex/skills/
-cp -R /tmp/job-apply-pack/skills/chrome-use ~/.codex/skills/            # browser control
-cp -R /tmp/job-apply-pack/skills/job-search-orchestrator ~/.codex/skills/  # optional
-```
+Old standalone zip packs which contain only `daily-job-apply` are incomplete for
+this layout. Preserve their runtime data and install the current repository;
+no application engine or data migration is required.
 
-### chrome-use CLI
+## Runtime prerequisites
 
-`chrome-use` is a standalone CLI, not only a skill directory — install the binary and connect it to the real Chrome once:
+- A running real Chrome with the intended profile, and the installed chrome-use
+  CLI connected to it. Follow the chrome-use skill's current installation and
+  connection guide. The runtime identity is checked by
+  [COLD-START.md](COLD-START.md).
+- Python 3.10+ for deterministic dedupe, public API sourcing, hash or archive
+  helpers when needed. Browsing and application judgment remain in Markdown.
+- Current approved resume PDFs and their baseline, plus local candidate facts.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/leeguooooo/chrome-use/main/install.sh | sh
-chrome-use browsers     # needs profile `Lu` (yplmicro@gmail.com) to show CONNECTED
-```
+There is no Node/Playwright adapter dependency for the active application
+workflow. Do not install or run a headless sourcing browser, fixed form filler,
+retired CDP engine or batch apply runner as an installation step.
 
-`chrome-use` drives the user's real, already-logged-in Chrome; applications run in its named session `jobapply` (`workflows/04-universal-web-apply.md`).
+## Local configuration
 
-### Profile + tracker
+For a fresh installation, copy `data/profile.json.example` to
+`data/profile.json` only if a local profile does not already exist. Fill it with
+that person's facts and resume paths. Personal profile values do not belong in
+a public repository. The shipped FROZEN table in
+[04-universal-web-apply.md](workflows/04-universal-web-apply.md) contains the
+original user's approved facts; a different user must supply their own facts
+before an application is prepared.
 
-```bash
-cp ~/.codex/skills/daily-job-apply/data/profile.json.example \
-   ~/.codex/skills/daily-job-apply/data/profile.json
-# Edit name, email, LinkedIn, resume_paths
+Optional path overrides and phone variables live in
+`~/.config/daily-job-apply/env`. Edit an existing file in place; never overwrite
+it with an example. Phone digits are read from the environment by the browser
+operation and must never be printed or committed.
 
-mkdir -p ~/.config/daily-job-apply
-cat > ~/.config/daily-job-apply/env << 'EOF'
-# Optional overrides (all paths expand ~)
-DAILY_JOB_APPLY_PDF_DIR=~/Documents/resumes
-# DAILY_JOB_APPLY_WORK_DIR=~/job-hunt
-# DAILY_JOB_APPLY_TRACKER=~/.codex/skills/daily-job-apply/state/tracker.csv
-# CHROME_USE_BIN=chrome-use
-# Phone numbers live only in this file, never in the repo — fill them in:
-JOB_APPLY_PHONE=
-JOB_APPLY_PHONE_CN=
-EOF
-```
+Keep existing work directories, tracker, ledger and Vault archives in place.
+Path resolution follows `runtime/skill_paths.sh` and
+[job-search shared state](../job-search/references/shared-state.md). Reading a
+status or searching does not require creating runtime directories.
 
-`cat >` overwrites an existing env file (which may already hold your phone numbers): if one exists, edit it instead.
+## Verify without submitting
 
-### Optional: Greenhouse sourcing helper
+Check the skill links and read [job-search](../job-search/SKILL.md). For an
+application request, continue to [Apply](../job-search/workflows/apply.md), which
+loads the current preflight and platform playbook. A connection check uses the
+named session `jobapply2`, pins the configured Chrome identity and performs no
+application writes. No install or link check submits a form.
 
-Applying uses `chrome-use`, not Playwright. Only `adapters/greenhouse_current_sourcing.cjs` (job sourcing, not applying) still needs Node: it imports `playwright` and launches its own headless system Chrome (`channel: 'chrome'`). Not verified end to end.
+The existing `daily-job-apply`, `job-apply-automation` and
+`job-search-orchestrator` names remain compatibility entries for old callers.
+Codex disables their implicit invocation through `agents/openai.yaml`;
+`job-search` is the normal discovery entry. LinkedIn remains frozen.
 
-```bash
-cd ~/.codex/skills/daily-job-apply/adapters && npm install
-```
+## Retired resources
 
-### Verify
-
-```bash
-python3 ~/.codex/skills/daily-job-apply/scripts/ats_platform_classify.py \
-  --url "https://jobs.ashbyhq.com/acme/00000000-0000-0000-0000-000000000000/application"   # expect "status": "playbook", "apply_allowed": true
-chrome-use browsers                            # profile `Lu` shows CONNECTED
-chrome-use --session jobapply tab list --full  # must print: profile: Lu (Profile 2, yplmicro@gmail.com)
-```
-
----
-
-## Migration from old layout (Yupeng / existing users)
-
-If you already have `~/job-hunt/` with tracker, pools, and ledger:
-
-1. **Keep** `~/job-hunt/` as work directory (pools, logs, ledger stay there).
-2. **Stop using** `~/job-hunt/run-next.sh` and `runtime/run-next.sh`: the batch engine is retired (`runtime/run-next.sh` is a stub that exits 2). Roles are applied one at a time with `chrome-use` (`workflows/04-universal-web-apply.md`).
-3. **Stop using** `~/Downloads/.omx` — the old CDP/Playwright apply scripts are retired. The author's checkout keeps reference copies under `archive/2026-10-cdp-retired/`; that folder is not part of the friends' zip. The platform knowledge now lives in `ATS-GREENHOUSE.md`, `ATS-ASHBY.md` and `ATS-BLOCKERS.md`.
-4. Add to `~/.config/daily-job-apply/env` (append; do not overwrite your phone numbers):
-
-```bash
-DAILY_JOB_APPLY_WORK_DIR=~/job-hunt
-DAILY_JOB_APPLY_TRACKER=~/job-hunt/tracker.csv
-DAILY_JOB_APPLY_PDF_DIR=~/Documents/Obsidian\ Vault/Resume_YupengLu/application-ai-agent
-```
-
-5. `ROUND-MANIFEST.yaml` and `runtime/read_manifest.py` are orphaned: they only fed the retired batch engine.
-
-### Path map (old → new)
-
-| Old | New |
-|-----|-----|
-| `~/Downloads/.omx/*.py` | apply scripts retired (reference copies only in the author's checkout under `archive/2026-10-cdp-retired/`, not in the friends' zip); other helpers in `.../adapters/` |
-| `~/job-hunt/data/*.json` | `.../data/*.json` (skill root) |
-
-Orphaned (non-functional, never run them): `ROUND-MANIFEST.yaml`, `runtime/read_manifest.py`, `adapters/ashby_apply_batch.py`, `adapters/greenhouse_playwright_batch.py`, `runtime/greenhouse/run_round13.py`, `runtime/greenhouse/run_round18.py`, `runtime/manual/manual-retry-runner.py`, `runtime/ashby/round110-batch.sh`.
-
----
-
-## macOS requirements (honest)
-
-- **Google Chrome** running with the user's real, already-logged-in profile (this machine: `Lu` / `yplmicro@gmail.com`)
-- **chrome-use** CLI installed and connected to that profile
-- **Python 3.10+**; **Node.js** only for the optional Greenhouse sourcing helper
-
-Linux/Windows: `chrome-use` is portable, but the `profile:` check described in `COLD-START.md` has only been validated on macOS.
-
----
-
-## Cursor / Claude symlinks
-
-```bash
-mkdir -p ~/.cursor/skills ~/.claude/skills
-ln -sf ~/.codex/skills/daily-job-apply ~/.cursor/skills/daily-job-apply
-ln -sf ~/.codex/skills/daily-job-apply ~/.claude/skills/daily-job-apply
-```
+Keep old runtime/adapters and `archive/2026-10-cdp-retired/` out of the active
+route. `runtime/run-next.sh` is a retirement stub, not a job-search command.
+Neither a fresh install nor a scheduler should execute an old round manifest,
+Easy Apply runner, Playwright/CDP fill adapter or browser retry loop. Existing
+platform experience lives in the maintained Markdown playbooks and FIELD-NOTES.

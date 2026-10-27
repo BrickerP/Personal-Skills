@@ -43,7 +43,7 @@ install() {
   echo "linked $count skills into ${#TARGETS[@]} tool dirs"
   echo
   echo "Optional deps (first use):"
-  echo "  daily-job-apply adapters: (cd \"$REPO/skills/daily-job-apply/adapters\" && npm install)"
+  echo "  job-search: connect chrome-use to your real Chrome; no retired adapter dependencies"
   echo "  pdf-sanitize: creates its own .venv on first run"
 }
 

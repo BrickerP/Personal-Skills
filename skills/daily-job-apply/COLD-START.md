@@ -1,6 +1,8 @@
 # Cold-start — context-free agent entry | 冷启动（无需对话上下文）
 
-Read this file first on a fresh machine or new agent session. **No prior conversation context required.**
+Read this file before an application session through [job-search / apply](../job-search/workflows/apply.md). **No prior conversation context required.**
+
+Policy is in [POLICY.md](POLICY.md). The agent follows Markdown and reads the current page before each action. Helpers may inspect, dedupe, validate and record; they never run a browser fill/upload/submit loop.
 
 **Skill home (canonical):** `~/.codex/skills/daily-job-apply/`
 
@@ -44,20 +46,20 @@ The old Gmail same-window pairing check no longer exists. The `yplmicro@gmail.co
 
 ### Daily ~50 zero-gate preflight（每日约 50 条零门槛预检）
 
-Run this on the wp Mac **before** a volume run. Target for the weekday routine is **~50 verified zero-gate Greenhouse** submits, not 200 the same night unless the user overrides. All twelve must pass before the first submit. Canonical copy (same list the Grok Bot routine uses):
+Run this on the wp Mac **before** a volume run. Target for the weekday routine is **~50 verified zero-gate Greenhouse** submits, not 200 the same night unless the user overrides. Complete the preflight checks before the first submit, then preserve the cadence, stop and reporting rules throughout the run. This is the same preset used by the configured bot routine:
 
 1. Chrome-use probe: `chrome-use browsers` (Lu CONNECTED) and `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list --full` → `profile: Lu (Profile 2, yplmicro@gmail.com)`. Also run `TZ=Asia/Shanghai date`.
 2. Reconnect or open a new session name if hung (same `--browser`; do not retry a dead session). Record the rename.
 3. PDF hash vs `pdf-hashes.txt` (§1). STOP on drift. Confirm the resume PDF path exists.
 4. Profile Lu confirmed whenever a `profile:` line prints. Anything else = STOP `wrong-profile`.
-5. Blocked companies loaded from `data/blocked-companies.json`. Skip every listed key. **Twilio is listed** — Skip `company-blocked` even when the form looks clean. Do not delete it from the file. Confirm `JOB_APPLY_PHONE` exists in `~/.config/daily-job-apply/env` (never echo the number).
-6. Dedupe by job-id path-form **before open**: grep the tracker for `(?:jobs/|token=)(\d{4,})`. `boards.greenhouse.io`, `job-boards.greenhouse.io`, and `embed/job_app?token=` are the same job.
+5. Resolve the effective blocked-company list in the helper's actual order: `~/job-hunt/data/blocked-companies.json`, then skill-local `data/blocked-companies.json` (first nonempty list, not a merge). Skip every listed key. **Twilio is listed** — Skip `company-blocked` even when the form looks clean. Do not delete a key or infer that an old list expired. Confirm `JOB_APPLY_PHONE` exists in `~/.config/daily-job-apply/env` (never echo the number).
+6. Before opening **each role**, run `job_dedupe_check.py` as workflow 04 specifies. Only exit 0 plus final JSON `ok: true` permits continuation; blocked/duplicate/cap, missing output or an exception stops work. Job-id path-form checks supplement this: `boards.greenhouse.io`, `job-boards.greenhouse.io`, and `embed/job_app?token=` can be the same job. A grep or sourcing filter alone cannot replace the company check.
 7. Zero-gate Greenhouse queue only for this routine.
 8. **≥90s** between verified submits on the same platform family (routine floor; the wider 90–180s band still applies).
 9. Close the tab after each verified record. One active apply tab.
 10. Stop early if ManualFinish / Blocked dominate the first ~10 probes. Report the four gates. Do not burn the hour.
-11. Proof is only a URL containing `/confirmation`, or a security-code field. `bad:0` / `checkValidity()` pass is not a submit.
-12. Deliver the run summary to the user in the Grok Bot chat (including a short status when nothing verifiable was submitted).
+11. Submitted requires a final application-success page/state or a matching application-received email. A security-code field is **verification pending**; complete the code step and confirm final success first. A code-delivery email, `bad:0` or `checkValidity()` pass is not proof.
+12. Reply with the run summary on the current calling surface, including when nothing verifiable was submitted. A configured bot routine uses its existing delivery channel; do not send an additional cross-chat message or create new delivery without user authorization.
 
 Visible CAPTCHA / hCaptcha / SMS stay user blockers → `ManualFinish`. Do not solve them.
 
@@ -90,7 +92,7 @@ Until the user says LinkedIn review is resolved: **no** LinkedIn Easy Apply, pro
 | Apply workflow (per-role procedure, FROZEN answers, pre-submit gate) | `~/.codex/skills/daily-job-apply/workflows/04-universal-web-apply.md` |
 | Platform playbooks | `~/.codex/skills/daily-job-apply/ATS-GREENHOUSE.md`, `ATS-ASHBY.md`, `ATS-BLOCKERS.md` |
 | Pre-submit gate | `~/.codex/skills/daily-job-apply/scripts/ats_pre_submit_gate.js` |
-| Blocked companies | `~/.codex/skills/daily-job-apply/data/blocked-companies.json` |
+| Blocked companies | `~/job-hunt/data/blocked-companies.json` first; skill-local `data/blocked-companies.json` fallback |
 | GH skip boards | `~/.codex/skills/daily-job-apply/data/gh-skip-boards.json` |
 | GH embed skip domains | `~/.codex/skills/daily-job-apply/data/embed-career-domains.json` |
 | Ashby skip slugs | `~/.codex/skills/daily-job-apply/data/ashby-skip-slugs.json` |
@@ -98,7 +100,7 @@ Until the user says LinkedIn review is resolved: **no** LinkedIn Easy Apply, pro
 | Tracker (default) | `~/.codex/skills/daily-job-apply/state/tracker.csv` |
 | Env overrides | `~/.config/daily-job-apply/env` |
 | End-of-run checklist | `~/.codex/skills/daily-job-apply/END-OF-RUN.md` |
-| Full skill rules | `~/.codex/skills/daily-job-apply/SKILL.md` |
+| Application policy | `~/.codex/skills/daily-job-apply/POLICY.md` |
 
 ## After the run
 

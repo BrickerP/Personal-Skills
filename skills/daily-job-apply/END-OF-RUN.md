@@ -2,7 +2,7 @@
 
 Use after every external ATS run (roles applied one by one with `chrome-use`, per `workflows/04-universal-web-apply.md`). **No conversation context required** — all paths are absolute.
 
-Related: `COLD-START.md` (preflight), `SKILL.md` (policy), `workflows/04-universal-web-apply.md` (per-role procedure, FROZEN answers, pre-submit gate).
+Related: `COLD-START.md` (preflight), `POLICY.md` (policy), `workflows/04-universal-web-apply.md` (per-role procedure, FROZEN answers, pre-submit gate).
 
 ---
 
@@ -47,7 +47,7 @@ An existing file is only a candidate list: the agent applies its `auto_candidate
 
 ## 3. Greenhouse email verification chain
 
-Some Greenhouse boards ask for an email security code after Submit (`ATS-GREENHOUSE.md` §2.8). The agent solves it itself; hand off as `ManualFinish` (blocker `skip-email-verification`) only if Gmail cannot be read.
+Some Greenhouse boards ask for an ordinary email security code after Submit (`ATS-GREENHOUSE.md` §2.8). This is **verification pending**, not Submitted. The agent may complete ordinary email verification under the current authorization; hand off as ManualFinish if Gmail is unreadable or the step cannot be completed safely.
 
 1. The connected profile is the gate: every `profile:` line `chrome-use` prints (the first command of a new or restarted session) must read `Lu (Profile 2, yplmicro@gmail.com)` (`COLD-START.md` step 3). chrome-use exposes no per-tab window id, so **profile identity, not window identity, is the gate** — a Gmail tab in another Chrome profile is not acceptable.
 2. Read the code from the `yplmicro@gmail.com` Gmail Inbox only (sender `no-reply@us.greenhouse-mail.io`, subject `Security code for your application to <company>`). It is an 8-character alphanumeric code.
@@ -59,9 +59,9 @@ chrome-use --session jobapply2 snapshot -i        # find the security-input-N ce
 chrome-use --session jobapply2 fill @eN <char>    # one character per security-input-N cell, in order
 ```
 
-   Greenhouse splits the code into `security-input-1` … `security-input-N` on some boards and uses a single security/code field on others; a single field takes the whole code. If the submit button stays disabled after the last cell, set the cells the way `ATS-GREENHOUSE.md` §2.8 describes.
+   Greenhouse splits the code into `security-input-1` … `security-input-N` on some boards and uses a single security/code field on others; a single field takes the whole code. Use real UI input from the current snapshot. If the button stays disabled, inspect the error and correct once by keyboard/Tab; never inject native setters or loop writes. If it still cannot commit, ManualFinish.
 4. The submit button enables after the last cell. Run the pre-submit gate (`workflows/04-universal-web-apply.md`, "Pre-submit gate"); submit only when `ok` is true.
-5. On verified confirmation → tracker upsert + ledger + archive + close tab (§4).
+5. Require a final success page/state or a matching application-received email after verification. Code fields and code-delivery mail are not receipts. Only then → tracker upsert + ledger + archive + close tab (§4).
 
 ---
 
@@ -92,7 +92,7 @@ Keep **one** application tab in the session at a time (a tab handed over with `k
 
 ## 6. Tracker upsert field mapping
 
-Canonical file: `~/job-hunt/tracker.csv` (it does not exist today; the empty shipped template is `state/tracker.csv`). The header shapes in use differ, so map the columns below **by name** and leave out any column the file's header lacks:
+Canonical operational file: `~/job-hunt/tracker.csv`; the shipped template is `state/tracker.csv`. Inspect the actual current header rather than inferring file presence from old notes. The header shapes in use differ, so map the columns below **by name** and leave out any column the file's header lacks:
 
 - 10-column template (`state/tracker.csv`): `Date,Company,Role,JD_URL,Channel,Stage,Application_Submitted,Response_Status,Resume_Variant,Notes`
 - 13/14-column backups (`~/job-hunt/tracker.csv.bak.*`): the table below, with a trailing `Status` in the 14-column form
@@ -117,7 +117,7 @@ Which header becomes canonical is still open. `job_dedupe_check.py` reads `Date`
 
 `DuplicateSubmitted` is the retired adapter's value for "already applied"; `job_dedupe_check.py` still honors it in old rows. New runs record an already-applied role as `Skipped` (`workflows/04-universal-web-apply.md`); the dedupe guard treats both as duplicates.
 
-**Upsert key**: normalized `JD_URL` — update existing row if URL matches, else append.
+**Upsert key**: preserve the existing recorder’s normalized job/requisition identity (including Greenhouse job-id and Ashby UUID equivalence). Inspect normalized `JD_URL` before update/append; never overwrite a confirmed submission with a later probe failure. Do not create another recorder or schema.
 
 **Ledger append** (`~/job-hunt/application-ledger.md`):
 

@@ -1,11 +1,14 @@
 ---
 name: gh-resume-builder
-description: Mine a GitHub user's merged PRs across an org/repos and refresh the bilingual evidence-ledger Markdown (mined source-of-truth). DOES NOT regenerate recruiter-facing application PDFs — those are owned exclusively by build_resumes.py. Use when user asks "refresh resume markdown from my commits", "update mined evidence ledger", or "summarize what I shipped at <company>".
+description: Mine a GitHub user's merged PRs across an org/repos and refresh the bilingual evidence-ledger Markdown (mined source-of-truth). DOES NOT regenerate recruiter-facing application PDFs — those are owned exclusively by build_resumes.py. Use when user asks "refresh resume markdown from my commits", "update mined evidence ledger", or "summarize what I shipped at a company".
 metadata:
   short-description: Mine GitHub PRs into bilingual evidence-ledger Markdown (Markdown-only)
 ---
 
 # gh-resume-builder
+
+For the wider lifecycle use [job-search](../job-search/SKILL.md). This remains
+the reusable GitHub evidence/portfolio tool, not a nightly application step.
 
 ## What it does
 
@@ -15,9 +18,10 @@ Turns a GitHub author's merged-PR history (within one org, or across specific re
 
 ```
 /Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/
-  Resume_YupengLu_AI_Agent_Infra.pdf
-  Resume_YupengLu_Backend_Platform.pdf
-  Resume_YupengLu_General_SWE.pdf
+  Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf
+  Resume_YupengLu_AI_Agent_Engineer_1P_ZH.pdf
+  Resume_YupengLu_AI_Agent_Engineer_2P_EN.pdf
+  Resume_YupengLu_AI_Agent_Engineer_2P_ZH.pdf
 ```
 
 …and are generated **only** by:
@@ -43,12 +47,13 @@ This skill never touches those files. See the "Application PDF boundary" section
 
 ## Application PDF boundary (HARD RULE)
 
-These three files are **off-limits to this skill**:
+All recruiter-facing PDFs are **off-limits to this skill**, including the current quartet:
 
 ```
-/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Infra.pdf
-/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_Backend_Platform.pdf
-/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_General_SWE.pdf
+/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf
+/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_1P_ZH.pdf
+/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_2P_EN.pdf
+/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent/Resume_YupengLu_AI_Agent_Engineer_2P_ZH.pdf
 ```
 
 Before AND after any run, the agent MUST verify hashes have not changed:
@@ -57,9 +62,10 @@ Before AND after any run, the agent MUST verify hashes have not changed:
 APP_DIR="/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/application-ai-agent"
 (
   cd "$APP_DIR"
-  shasum -a 256 Resume_YupengLu_AI_Agent_Infra.pdf \
-                Resume_YupengLu_Backend_Platform.pdf \
-                Resume_YupengLu_General_SWE.pdf
+  shasum -a 256 Resume_YupengLu_AI_Agent_Engineer_1P_EN.pdf \
+                Resume_YupengLu_AI_Agent_Engineer_1P_ZH.pdf \
+                Resume_YupengLu_AI_Agent_Engineer_2P_EN.pdf \
+                Resume_YupengLu_AI_Agent_Engineer_2P_ZH.pdf
 )
 ```
 
@@ -194,18 +200,12 @@ After updating mined markdown, ALWAYS end the run with:
 ```markdown
 ✅ Mined markdown updated. New scopes / metrics worth promoting into the
 recruiter-facing PDFs:
-- <bullet 1 — what's new and which of the 3 PDFs it likely belongs in>
+- <bullet 1 — what's new and which current resume variant it may improve>
 - <bullet 2>
 
-⚠️ Application PDFs were NOT touched. If you want these changes reflected
-on the application PDFs, edit:
-  /Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/curated-script/build_resumes.py
-and re-run:
-  cd /Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/curated-script
-  python3 build_resumes.py
-  cp Resume_YupengLu_AI_Agent_Infra.pdf Resume_YupengLu_Backend_Platform.pdf Resume_YupengLu_General_SWE.pdf ../application-ai-agent/
-  cd ../application-ai-agent
-  shasum -a 256 *.pdf > pdf-hashes.txt
+Application PDFs were not touched. For a requested PDF revision, continue through
+job-search's Resume workflow and the existing build_resumes.py owner workflow.
+This evidence run does not rebuild, copy PDFs or reset their hash baseline.
 ```
 
 ### Output skeleton (markdown only)
@@ -248,13 +248,13 @@ and re-run:
 
 When the user says "update my resume markdown":
 
-1. Hash the 3 application PDFs (preflight). Store hash list.
+1. Hash the current application PDF quartet (preflight). Store hash list.
 2. Read the **snapshot cutoff date** from the existing `resume_*.md`.
 3. Re-run Step 1 with `--merged-at=">=<cutoff+1>"`.
 4. Repeat Steps 2–4 only on the delta.
 5. Append new bullets under existing sections; don't rewrite proven content.
 6. Update the snapshot date and metric table totals.
-7. Re-hash the 3 application PDFs (postflight). MUST match preflight.
+7. Re-hash the same application PDFs (postflight). MUST match preflight.
 8. Print the "PDFs are stale" reminder from Step 7 above.
 
 ## Anti-patterns (do not do)
@@ -273,14 +273,13 @@ Use this branch when the user wants LinkedIn Featured material, case studies, or
 
 See the dedicated proof-package mining commands (npm view, public repo metadata, cherry-pick / cross-branch evidence) — these are markdown-only outputs in `resume-proof/*.md`. No PDF generation in this branch either.
 
-## Current-machine notes (2026-06-02)
+## Artifact ownership and historical evidence
 
 - Mined source-of-truth: `/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/source-of-truth/{resume_yupeng_en.md, resume_yupeng_zh.md}`.
 - Curated PDF script: `/Users/yupeng/Documents/Obsidian Vault/Resume_YupengLu/curated-script/build_resumes.py`. This file is the single source of truth for application PDFs and is **edited by the human (with Mira's help), never by this skill**.
 - Application PDFs in `application-ai-agent/`:
-  - `Resume_YupengLu_AI_Agent_Infra.pdf` — AI Agent Infrastructure version
-  - `Resume_YupengLu_Backend_Platform.pdf` — Backend / Platform version
-  - `Resume_YupengLu_General_SWE.pdf` — General SWE version
-- All three PDFs: 2-page Letter, ATS-friendly single-column, header email `yplmicro@gmail.com`, GitHub `BrickerP`, location `San Francisco Bay Area` (NO "relocating from Beijing" in resume body — privacy decision).
-- Verified GitHub PR totals at 2026-06-02: 741 merged PRs in 10 months across Cookiy AI; 41 MCP tools, 4 MCP servers, 12 streaming endpoints, 7 L0–L6 release-gate profiles, 291 E2E cases, 314 fix PRs. These numbers are baked into `build_resumes.py`; refresh that script when they change materially.
+  - `Resume_YupengLu_AI_Agent_Engineer_1P_{EN,ZH}.pdf` — curated one-page variants
+  - `Resume_YupengLu_AI_Agent_Engineer_2P_{EN,ZH}.pdf` — curated two-page variants
+- The default outbound English variant and approved contact/location facts follow the current job-search Resume workflow and daily-job-apply FROZEN answers. Old AI Agent Infra / Backend Platform / General SWE aliases may be absent; do not require or regenerate them.
+- Historical GitHub PR totals recorded at 2026-06-02: 741 merged PRs in 10 months across Cookiy AI; 41 MCP tools, 4 MCP servers, 12 streaming endpoints, 7 L0–L6 release-gate profiles, 291 E2E cases, 314 fix PRs. Treat these as a dated snapshot, not present-day verified resume claims; use the current evidence sources for revisions.
 - `BrickerP/quant-trading` and dating repo are private; do NOT include their PR counts in Cookiy totals.

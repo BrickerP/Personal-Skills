@@ -1,21 +1,13 @@
-# Channel 3: Weekly LinkedIn maintenance
+# LinkedIn maintenance is frozen
 
-Use at most once per week. This is recruiter-signal maintenance, not mass networking.
+This historical weekly channel is not an active route. Do not edit a LinkedIn
+profile, post, comment, save, follow, connect or message while the current freeze
+stands. A weekly reminder or old channel reference does not authorize a write.
 
-## Scope
-
-- One draft post about AI infrastructure / agent systems / production reliability.
-- Ten thoughtful comments on relevant Bay Area AI infra, ML systems, developer-tools, or startup engineering posts.
-- Optional profile cleanup only after privacy preflight and explicit confirmation.
-
-## Guardrails
-
-- All posts/comments are dry-run first.
-- No current employer legal name, client names, internal projects, revenue, or private metrics.
-- Avoid commenting on current-employer employees, investors, obvious partner/customer accounts, or posts likely to surface to the current-company network.
-- No LinkedIn writes during BJT 09:00-19:00.
-- Keep comments technical and low-drama: production reliability, API contracts, evaluation, infra tradeoffs, system design.
-
-## Output
-
-Report draft post, target comment links, risk flags, and whether anything was published. Update tracker notes if weekly maintenance directly supports a company/role target.
+For requested private drafts, use
+[Materials](../../job-search/workflows/materials.md) with current facts and
+confidentiality rules. Drafts remain drafts; they are not published. For the
+current pipeline and next action, use
+[Review](../../job-search/workflows/review.md). Read existing LinkedIn status
+only when the user explicitly asks. The retired BJT window and old stealth
+naming rules do not replace current policy.

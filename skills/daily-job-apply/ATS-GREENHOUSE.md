@@ -9,6 +9,10 @@
 This file is the knowledge; the automation is gone. Drive Greenhouse forms interactively with `chrome-use`
 (see `workflows/04-universal-web-apply.md` for the procedure).
 
+[POLICY.md](POLICY.md) governs the current workflow. Selectors below are diagnostic
+hints from observed pages, not a fixed fill map. Use fresh snapshots and real UI
+actions; never execute retired adapters, inject setters or loop submission attempts.
+
 > **Read this first**: before 2026-10-15 most answers below were **hardcoded in the retired adapter**, not read
 > from `data/profile.json`. The identity / phone / location / work-authorization / years / education / AI-usage
 > answers are now **frozen in the FROZEN section of `workflows/04-universal-web-apply.md`**, and every row
@@ -34,7 +38,7 @@ This file is the knowledge; the automation is gone. Drive Greenhouse forms inter
 | Location (City) | `#candidate-location` | type `San Francisco, CA`, then **click** the matching option | hardcoded | React-Select autocomplete — filling the value without selecting the option does nothing |
 | School (edu 0) | `#school--0` | `Boston University` | `education[0].school` | Fill only if required-and-empty |
 | Degree (edu 0) | `#degree--0` | `Master's Degree` → `Masters` → `Master` | `education[0].degree` | Option wording varies per board |
-| Discipline (edu 0) | `#discipline--0` | **ManualFinish** when the board requires a major pick | open human gate | Preference order in FROZEN (`Mathematics` → `Finance` → `Physics`) is not a universal dropdown string. Do not invent a label |
+| Discipline (edu 0) | `#discipline--0` | FROZEN preference only when an exact truthful option exists; otherwise **ManualFinish** | open human gate | Preference order in FROZEN (`Mathematics` → `Finance` → `Physics`) is not a universal dropdown string. Do not invent a label |
 | Education years | `start-year--0` / `end-year--0` | recorded graduation end years only: BU `2023`, OSU `2021` | FROZEN → Education | Start year/month or any other date ⇒ ManualFinish (`education-date-required-unverified`). Never invent a start year. DOB, if asked: `1999-08-03`. Years-of-experience floor stays `3` |
 | Demographic dropdowns | `.demographic--container input.select__input[id]` | one of the 8 decline variants | — | Required demographics block submission |
 | Required checkboxes | `input[type=checkbox][required]` | tick `consent\|privacy\|processing of personal data\|gdpr_(demographic_data\|processing)_consent_given\|certify\|acknowledge\|terms` | — | **Never tick** `future job opportunities\|talent community\|marketing` |
@@ -53,18 +57,18 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 | Location / city / state / zip | `San Francisco Bay Area` / California / `94105` |
 | LinkedIn / GitHub | `.../in/yupeng-lu-845a0b411/` / `https://github.com/BrickerP` |
 | Degree / major | `Master's degree` / `Mathematical Finance and FinTech` |
-| Programming / interview language | **Python**; for three-language questions: `Python: advanced; TypeScript/JavaScript: advanced; Go: working proficiency.` |
-| Timezone | `Pacific Time` |
+| Programming / interview language | Use verified profile/current user facts for the exact question; otherwise ManualFinish. Never inherit the retired proficiency sentence |
+| Timezone | Use the exact verified user preference; otherwise ManualFinish. Do not infer physical timezone from the resume location |
 | Salary | **ManualFinish** — numeric range is a user gate. Do not invent a number or a market sentence |
-| How did you hear | text `Company careers page`; dropdown prefer `company career\|career page\|company website` |
-| Referral / prior employment / relatives / non-compete | **No** |
-| Sanctioned countries (Cuba/Iran/NK/Russia…) | No |
+| How did you hear | Use the actual discovery source and matching option; unknown required source ⇒ ManualFinish. Never invent a referral or reuse an adapter default |
+| Referral / prior employment / relatives / non-compete | Only exact confirmed facts; agreements and unverified legal/conflict answers are ManualFinish |
+| Sanctions / restricted-country questions | ManualFinish unless the exact legal-status question has a confirmed FROZEN answer |
 | SMS consent | **No** |
-| 18+ / work eligibility thresholds | Yes |
+| Age / work eligibility threshold | Compare the exact threshold with confirmed DOB or FROZEN authorization; unsupported/ambiguous wording ⇒ ManualFinish |
 | Years of experience | FROZEN → Years: derived from `professional_since` (3 as of 2026-10). `N+` ⇒ Yes iff N ≤ 3; numeric ⇒ `3`; free text ⇒ `3+ years`; buckets ⇒ highest with lower bound ≤ 3. **4+/5+/6+/7+/10+ ⇒ No** |
-| Onsite / relocation | Bay Area roles ⇒ Yes; non–Bay Area ⇒ **No**; explicit relocate-to-Bay-Area ⇒ Yes |
-| On-call / 24-7 | Yes |
-| Degree thresholds (STEM/bachelor etc.) | Yes (multi-select) |
+| Onsite / relocation | Use the current user preference for the actual location/commitment; unknown is ManualFinish |
+| On-call / 24-7 | User preference, never the retired blanket Yes; unknown is ManualFinish |
+| Degree thresholds (STEM/bachelor etc.) | Compare the exact requirement with confirmed FROZEN education; unsupported/ambiguous threshold ⇒ ManualFinish. Never infer every qualification from a generic STEM label |
 | Policy acknowledgement ("I confirm this application / these materials are my own work"; authenticity attestation that does **not** ask about AI tools) | **Tick / Yes** (user policy A, 2026-10). Point at workflows/04 FROZEN → AI acknowledgements |
 | "Do you use AI tools" | FROZEN → the one approved sentence in workflows/04. Employer bans AI ⇒ ManualFinish |
 | AI-usage disclosure / "was this AI-assisted" / "did you use AI to write this" / interview AI attestation | **ManualFinish** — do not invent (policy A split) |
@@ -94,7 +98,8 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
    **Do not start filling on page load.**
 5. **Two prechecks** (informational for a human)
    - security-only: ≥4 `input[id^="security-input-"]` or body text matching
-     `security code|verification code|check your email` ⇒ `skip-email-verification`.
+     `security code|verification code|check your email` ⇒ verification pending;
+     follow §2.8. Use `skip-email-verification` only if the mailbox/code cannot be read.
    - full: compute answer blockers, then look for required `start-year--*` / `end-year--*`.
 6. **Fill order** — resume upload → custom answers (React-Select by clicking) → location + education +
    demographics → required checkboxes → validate with a visible-invalid scan.
@@ -104,11 +109,15 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
    **8-character alphanumeric** code from Gmail (body like `application: XXXXXXXX`, sender
    `no-reply@us.greenhouse-mail.io`, subject `Security code for your application to <company>`).
    Same company → same Gmail thread; always take the **newest** body.
-   Fill one character per cell (native value setter + `input`/`change`/`blur`); the submit button enables
-   only after the last cell. Run the gate again, then submit again.
-9. **Confirmation test** — body matches
-   `application submitted|thank you for applying|we received your application|your application has been received`,
-   **or** the URL ends with `/confirmation`. Button state alone is not reliable.
+   This page is **verification pending**, not Submitted. Take a fresh snapshot and
+   use real UI input: one character per split cell, or the entire code in a single
+   field, as the current page requests. Never use injected/native setters. If the
+   value will not commit after one keyboard/Tab correction, ManualFinish. Recheck
+   the current step and gate before its authorized confirmation action.
+9. **Confirmation test** — require the final role-specific application-success
+   page/state (such as `/confirmation`) or a matching application-received email.
+   Read the message in context: a generic “thank you”, code field/code-delivery
+   email or button state alone is not proof. Complete any email step first.
 
 ---
 
@@ -162,12 +171,14 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
    `input.remix-css-1a0ro4n-requiredInput`, and a literal `*` in the label together.
 5. **No reaction after submit** → three distinct cases: danger words = anti-bot; `security-input-*` = email
    code needed; neither = `submit-unverified` → ManualFinish: hand the page to the user (`keep`), **do not retry submit repeatedly**.
-6. **Dedupe must not be a blunt instrument** → only `ManualFinish|submit-unverified|skip-email-verification|invalid-or-unhandled-required|precheck|form gap|fill` may be retried.
-   `submitted:true / phone-rejected / platform-anti-bot / captcha / danger-text` never retry.
+6. **Dedupe follows evidence** → obey the current helper’s explicit retryable
+   verdict, not a regex over old labels. Do not retry an unverified final submit
+   in the same run. `submitted:true / phone-rejected / platform-anti-bot / captcha /
+   danger-text` never justify an automatic retry.
 7. **Security code is split per cell** → one character per `security-input-N`; the submit button enables only
    after the last cell.
-8. **Company-level over-application** → `data/blocked-companies.json` (the retired runner also hard-coded a few names); soft caps of
-   20 submissions/company and 2 ready/board.
+8. **Company-level over-application** → `data/blocked-companies.json` (the retired runner also hard-coded a few names); hard cap of
+   20 submissions/company. Apply the current blocked list and POLICY, not an old ready/board counter.
 9. **Required demographics block submit** → use the decline family.
 10. **Required consent boxes block submit** → tick consent/privacy/GDPR/terms only, never marketing.
 11. **Phone comes from the env file** → `$JOB_APPLY_PHONE` (US) per FROZEN → Phone, filled with `fill --from-env` last, right before the gate (a later `snapshot -i` echoes the typed digits, so mask it as FROZEN → Phone says). A form that rejects it or demands +86 ⇒ ManualFinish (`phone-rejected`); never fall back to the CN or the retired `+1-510` number.

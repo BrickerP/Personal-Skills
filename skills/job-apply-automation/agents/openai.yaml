@@ -1,0 +1,6 @@
+interface:
+  display_name: "Job Browser Apply (Legacy)"
+  short_description: "Compatibility route to agent-driven browser application"
+  default_prompt: "Use $job-apply-automation to follow the job-search Apply workflow for the authorized application."
+policy:
+  allow_implicit_invocation: false
