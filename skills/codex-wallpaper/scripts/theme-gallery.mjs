@@ -6,8 +6,14 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { renderGalleryPage } from './gallery-page.mjs';
+import { createCommunityCatalog } from './community-catalog.mjs';
+import { createCommunityInstaller } from './community-installer.mjs';
 
 const DEFAULT_IDLE_TIMEOUT_MS = 10 * 60 * 1000;
+const COMMUNITY_GALLERY_URL = 'https://dreamskin.cc/gallery';
+const SCRIPT_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/;
 const SAFE_IMAGE = /^[A-Za-z0-9][A-Za-z0-9._-]*\.(?:avif|gif|jpe?g|png|webp)$/i;
 const MIME = new Map([
@@ -101,6 +107,7 @@ export function collectManifest(themesRoot, activeTheme) {
         : id;
       themes.push({
         id,
+        themeId: String(config.id ?? id),
         name,
         active: Boolean(activeThemeId && String(config.id ?? '') === activeThemeId),
         imagePath: imageReal,
@@ -115,38 +122,8 @@ export function collectManifest(themesRoot, activeTheme) {
   return themes;
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
 export function renderHtml(themes, token, nonce) {
-  const cards = themes.map((theme) => `
-    <article class="card${theme.active ? ' active' : ''}">
-      <div class="preview"><img src="/thumb/${encodeURIComponent(theme.id)}?token=${token}" alt="${escapeHtml(theme.name)}" loading="lazy"></div>
-      <div class="meta">
-        <div><h2>${escapeHtml(theme.name)}</h2>${theme.active ? '<span class="badge">当前</span>' : ''}</div>
-        <button type="button" data-theme-id="${escapeHtml(theme.id)}">应用此主题</button>
-      </div>
-    </article>`).join('');
-  return `<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Codex 壁纸</title>
-<style>
-:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;background:#0d0f12;color:#f6f7f9}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#202733 0,#0d0f12 42%)}header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:20px clamp(18px,4vw,52px);background:rgba(13,15,18,.88);backdrop-filter:blur(18px);border-bottom:1px solid #ffffff17}h1{font-size:22px;margin:0}header p{margin:4px 0 0;color:#aab1bc;font-size:13px}.cancel{background:#262b33;color:#f6f7f9;border:1px solid #ffffff20;padding:9px 16px;border-radius:10px;cursor:pointer}main{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;padding:28px clamp(18px,4vw,52px) 48px}.card{overflow:hidden;border-radius:16px;border:1px solid #ffffff18;background:#171a20;box-shadow:0 14px 38px #0006;transition:.18s transform,.18s border-color}.card:hover{transform:translateY(-3px);border-color:#ffffff45}.card.active{border-color:#71a7ff;box-shadow:0 0 0 1px #71a7ff55,0 14px 38px #0006}.preview{aspect-ratio:16/9;background:#242932}.preview img{display:block;width:100%;height:100%;object-fit:cover}.meta{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:14px}.meta>div{min-width:0;display:flex;gap:8px;align-items:center}h2{font-size:15px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.badge{font-size:11px;color:#9fc2ff;background:#263d62;padding:3px 7px;border-radius:999px}.meta button{flex:none;border:0;border-radius:9px;padding:9px 12px;background:#f4f6fa;color:#15171b;font-weight:650;cursor:pointer}.meta button:hover{background:#fff}.meta button:disabled,.cancel:disabled{opacity:.55;cursor:wait}#status{position:fixed;right:20px;bottom:20px;display:none;padding:10px 14px;border-radius:10px;background:#151a22;border:1px solid #ffffff20}@media(max-width:520px){main{grid-template-columns:1fr}.meta{align-items:flex-start;flex-direction:column}.meta button{width:100%}}
-</style></head><body>
-<header><div><h1>Codex 壁纸</h1><p>${themes.length} 个主题 · 点击缩略图下方按钮应用</p></div><button class="cancel" id="cancel" type="button">取消</button></header>
-<main>${cards}</main><div id="status">正在提交选择…</div>
-<script nonce="${nonce}">
-const token=${JSON.stringify(token)};let done=false;const status=document.getElementById('status');
-async function submit(path,payload={}){if(done)return;done=true;status.style.display='block';document.querySelectorAll('button').forEach(button=>button.disabled=true);try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json','X-Codex-Wallpaper-Token':token},body:JSON.stringify(payload)});if(!response.ok)throw new Error();status.textContent='已完成，可以关闭此页面。';setTimeout(()=>window.close(),250)}catch{done=false;status.textContent='操作失败，请关闭页面后重试。';document.querySelectorAll('button').forEach(button=>button.disabled=false)}}
-document.querySelectorAll('[data-theme-id]').forEach(button=>button.addEventListener('click',()=>submit('/select',{id:button.dataset.themeId})));
-document.getElementById('cancel').addEventListener('click',()=>submit('/cancel'));
-</script></body></html>`;
+  return renderGalleryPage({ localThemes: publicManifest(themes), token, nonce });
 }
 
 function jsonResponse(response, status, body) {
@@ -187,11 +164,22 @@ function openVerifiedImage(theme) {
   }
 }
 
-export async function startGallery({ themes, timeoutMs, openBrowser = true, token = crypto.randomBytes(32).toString('hex') }) {
+export async function startGallery({ themes, timeoutMs, openBrowser = true, token = crypto.randomBytes(32).toString('hex'), catalog, installer, refreshThemes }) {
   if (!Array.isArray(themes) || themes.length === 0) throw new Error('没有带有效缩略图的主题。');
+  let localThemes = themes;
+  let catalogSnapshot;
   const themeMap = new Map(themes.map((theme) => [theme.id, theme]));
   if (themeMap.size !== themes.length || [...themeMap.keys()].some((id) => !SAFE_ID.test(id))) {
     throw new Error('主题清单包含无效或重复 ID。');
+  }
+  function refreshLocal() {
+    if (refreshThemes) localThemes = refreshThemes();
+    themeMap.clear();
+    for (const theme of localThemes) themeMap.set(theme.id, theme);
+    return localThemes;
+  }
+  function localForThemeId(themeId) {
+    return localThemes.find(theme => (theme.themeId ?? theme.id) === themeId);
   }
   const nonce = crypto.randomBytes(18).toString('base64');
   let origin = '';
@@ -205,6 +193,7 @@ export async function startGallery({ themes, timeoutMs, openBrowser = true, toke
     if (settled) return;
     settled = true;
     clearTimeout(idleTimer);
+    installer?.close?.();
     for (const stream of activeStreams) stream.destroy();
     server.close(() => resolveResult(value));
     server.closeAllConnections?.();
@@ -234,8 +223,10 @@ export async function startGallery({ themes, timeoutMs, openBrowser = true, toke
       response.writeHead(403, { 'Cache-Control': 'no-store' }).end(); return;
     }
 
+    idleTimer?.refresh?.();
+
     if (request.method === 'GET' && url.pathname === '/') {
-      const html = renderHtml(themes, token, nonce);
+      const html = renderHtml(refreshLocal(), token, nonce);
       response.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
         'Content-Security-Policy': `default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
@@ -245,6 +236,69 @@ export async function startGallery({ themes, timeoutMs, openBrowser = true, toke
         'X-Frame-Options': 'DENY',
       });
       response.end(html); return;
+    }
+
+    if (request.method === 'GET' && url.pathname === '/local') {
+      jsonResponse(response, 200, publicManifest(refreshLocal())); return;
+    }
+    if (request.method === 'GET' && url.pathname === '/catalog') {
+      if (!catalog) { jsonResponse(response, 503, { error: '社区目录暂时不可用。' }); return; }
+      try {
+        const snapshot = await catalog.list({ refresh: url.searchParams.get('refresh') === '1' });
+        catalogSnapshot = snapshot;
+        refreshLocal();
+        const items = snapshot.themes.map(theme => {
+          const local = localForThemeId(theme.themeId);
+          return { ...theme, installed: Boolean(local), localId: local?.id ?? null };
+        });
+        jsonResponse(response, 200, { ...snapshot, themes: items });
+      } catch { jsonResponse(response, 502, { error: '社区连接失败，请稍后重试。' }); }
+      return;
+    }
+    const communityThumb = request.method === 'GET' && url.pathname.match(/^\/community-thumb\/(ver_[A-Za-z0-9_-]{1,72})$/);
+    if (communityThumb) {
+      if (!catalog) { response.writeHead(404).end(); return; }
+      try {
+        const thumbnail = await catalog.thumbnail(communityThumb[1]);
+        response.writeHead(200, {
+          'Content-Type': thumbnail.mime,
+          'Content-Length': String(thumbnail.bytes.length),
+          'Cache-Control': 'private, max-age=86400',
+          'X-Content-Type-Options': 'nosniff',
+        });
+        response.end(thumbnail.bytes);
+      } catch { response.writeHead(404).end(); }
+      return;
+    }
+    if (request.method === 'POST' && url.pathname === '/install') {
+      if (requestOrigin !== origin || request.headers['content-type'] !== 'application/json') {
+        response.writeHead(403).end(); return;
+      }
+      if (!catalog || !installer) { jsonResponse(response, 503, { error: '社区安装暂时不可用。' }); return; }
+      try {
+        const body = JSON.parse(await requestBody(request) || '{}');
+        if (typeof body.id !== 'string' || !/^ver_[A-Za-z0-9_-]{1,72}$/.test(body.id)) {
+          jsonResponse(response, 400, { error: '主题标识无效。' }); return;
+        }
+        const snapshot = catalogSnapshot ??= await catalog.list();
+        const theme = snapshot.themes.find(theme => theme.id === body.id);
+        if (!theme) { jsonResponse(response, 400, { error: '该主题不在当前社区目录中，请刷新目录。' }); return; }
+        refreshLocal();
+        const existing = localForThemeId(theme.themeId);
+        if (existing) { jsonResponse(response, 200, { id: existing.id, name: existing.name, duplicate: true }); return; }
+        if (theme.applyCompatible !== true || !theme.platforms.includes('macos')) {
+          jsonResponse(response, 400, { error: '该主题未标记为适用于当前 macOS 引擎。' }); return;
+        }
+        const saved = await installer.install(body.id);
+        refreshLocal();
+        if (!themeMap.has(saved.id)) throw new Error('安装结果未能在本地确认。');
+        jsonResponse(response, 200, saved);
+      } catch (error) {
+        const message = error instanceof Error && /^(主题|社区|下载|图库|另一个|安装)/.test(error.message)
+          ? error.message : '安装失败，请稍后重试。';
+        jsonResponse(response, 400, { error: message });
+      }
+      return;
     }
 
     const thumbMatch = request.method === 'GET' && url.pathname.match(/^\/thumb\/([^/]+)$/);
@@ -288,6 +342,7 @@ export async function startGallery({ themes, timeoutMs, openBrowser = true, toke
       try {
         const body = JSON.parse(await requestBody(request) || '{}');
         if (url.pathname === '/select') {
+          refreshLocal();
           if (typeof body.id !== 'string' || !SAFE_ID.test(body.id) || !themeMap.has(body.id)) {
             jsonResponse(response, 400, { ok: false }); return;
           }
@@ -327,7 +382,7 @@ export async function startGallery({ themes, timeoutMs, openBrowser = true, toke
 }
 
 function publicManifest(themes) {
-  return themes.map(({ id, name, active, mime }) => ({ id, name, active, mime }));
+  return themes.map(({ id, name, active, mime, themeId }) => ({ id, name, active, mime, themeId }));
 }
 
 function httpRequest(origin, method, route, { token = '', requestOrigin = origin, body } = {}) {
@@ -398,8 +453,10 @@ async function selfTest() {
     const diagnostics = JSON.stringify(publicManifest(themes));
     assert(!diagnostics.includes(root) && !diagnostics.includes('imagePath'), '公开诊断不得暴露绝对图片路径');
     const html = renderHtml(themes, 'test-token', 'test-nonce');
-    assert(html.includes('&lt;安全名称&gt;') && !html.includes('<安全名称>'), 'HTML 应转义主题名');
-    assert(!/https?:\/\/(?!127\.0\.0\.1)/.test(html), 'HTML 不应引用外部资源');
+    assert(html.includes('\\u003c安全名称\\u003e') && !html.includes('<安全名称>'), 'HTML 应转义主题名');
+    assert(html.includes(`href="${COMMUNITY_GALLERY_URL}" target="_blank" rel="noopener noreferrer"`), 'HTML 应提供安全的新标签页社区入口');
+    assert(html.includes('社区全部') && html.includes('本地已安装'), 'HTML 应区分完整社区与本地库');
+    assert(!/https?:\/\/(?!127\.0\.0\.1)/.test(html.replace(COMMUNITY_GALLERY_URL, '')), 'HTML 不应引用其他外部资源');
 
     const first = await startGallery({ themes, timeoutMs: 2000, openBrowser: false, token: 'a'.repeat(64) });
     assert(await httpRequest(first.origin, 'GET', '/?token=wrong') === 403, '错误 token 应被拒绝');
@@ -484,11 +541,21 @@ async function main() {
     process.stdout.write(renderHtml(themes, 'TEST_TOKEN', 'TEST_NONCE'));
     return;
   }
-  const gallery = await startGallery({ themes, timeoutMs: options.timeoutMs });
+  const cacheRoot = path.join(os.homedir(), 'Library', 'Application Support', 'CodexWallpaper', 'community');
+  const catalog = createCommunityCatalog({ cacheRoot, seedFile: path.join(SCRIPT_ROOT, 'community-catalog.seed.json') });
+  const installer = createCommunityInstaller({ catalog, cacheRoot, wrapperPath: path.join(SCRIPT_ROOT, 'codex-wallpaper.zsh') });
+  const gallery = await startGallery({
+    themes, timeoutMs: options.timeoutMs, catalog, installer,
+    refreshThemes: () => collectManifest(options.themesRoot, options.activeTheme),
+  });
   const selected = await gallery.result;
   if (selected === '__OPEN_FAILED__') throw new Error('无法打开壁纸缩略图页面。');
   if (selected === '__SERVER_ERROR__') throw new Error('壁纸缩略图服务器异常退出。');
   process.stdout.write(`${selected}\n`);
 }
 
-main().catch((error) => fail(error instanceof Error ? error.message : String(error)));
+let directExecution = false;
+try { directExecution = fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); } catch {}
+if (directExecution) {
+  main().catch((error) => fail(error instanceof Error ? error.message : String(error)));
+}

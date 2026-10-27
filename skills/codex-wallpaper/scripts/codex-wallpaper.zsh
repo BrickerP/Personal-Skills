@@ -31,6 +31,7 @@ readonly ACTIVE_THEME="$STATE_ROOT/theme"
 readonly INJECTOR="$ENGINE_SCRIPTS/injector.mjs"
 readonly SWITCH_THEME="$ENGINE_SCRIPTS/switch-theme-macos.sh"
 readonly LOAD_IMAGE="$ENGINE_SCRIPTS/load-image-theme-macos.sh"
+readonly IMPORT_ZIP="$ENGINE_SCRIPTS/import-theme-zip-macos.sh"
 readonly DIMENSION_CHECKER="$ENGINE_SCRIPTS/check-image-dimensions.mjs"
 readonly COMPANION_STATE="$USER_HOME/Library/Application Support/CodexWallpaper"
 readonly NONCE_ROOT="$COMPANION_STATE/nonces"
@@ -54,6 +55,7 @@ typeset -g RESTART_OPERATION_ID=''
 typeset -g RESTART_OWNER_TUPLE=''
 typeset -g RESTART_NONCE_PATH=''
 typeset -g RESTART_SCHEDULER_ACKED=0
+typeset -g RESTART_WORKER_CLEANED=0
 
 die() {
   print -u2 -- "错误：$*"
@@ -68,6 +70,7 @@ usage() {
   print -- '  codex-wallpaper.zsh apply <名称或ID>'
   print -- '  codex-wallpaper.zsh restart-apply <名称或ID> --yes'
   print -- '  codex-wallpaper.zsh import <图片路径> <主题名称>'
+  print -- '  codex-wallpaper.zsh import-zip <ZIP路径> [--expected-sha256 <SHA256> --expected-bytes <字节数>]'
 }
 
 read_engine_version() {
@@ -120,6 +123,11 @@ require_mutation_runtime() {
   discover_upstream_runtime
   [[ -f "$INJECTOR" ]] || die '找不到 Dream Skin 注入器。'
   [[ -f "$GALLERY" && ! -L "$GALLERY" ]] || die '找不到安全的壁纸缩略图选择器。'
+  local gallery_helper
+  for gallery_helper in gallery-page.mjs community-catalog.mjs community-installer.mjs; do
+    [[ -f "$SKILL_ROOT/scripts/$gallery_helper" && ! -L "$SKILL_ROOT/scripts/$gallery_helper" ]] \
+      || die '社区图库组件不完整。'
+  done
   [[ -f "$VERIFICATION_SUMMARY" && ! -L "$VERIFICATION_SUMMARY" ]] || die '找不到安全的验证摘要程序。'
   [[ -x "$SWITCH_THEME" || -f "$SWITCH_THEME" ]] || die '找不到 Dream Skin 主题切换脚本。'
   [[ -x "$LOAD_IMAGE" || -f "$LOAD_IMAGE" ]] || die '找不到 Dream Skin 图片导入脚本。'
@@ -204,7 +212,7 @@ upstream_owns_port() {
   ' _ "$COMMON_MACOS" "$CODEX_BIN" "$PORT" >/dev/null 2>&1
 }
 
-# 返回 0=安全可用，10=未监听，20=存在不安全或无关监听者。
+# 返回 0=安全可用，10=未监听，20=不安全，30=已验证 Codex 监听但页面尚未就绪。
 validate_cdp_listener() {
   local records
   records="$(/usr/sbin/lsof -nP -a -iTCP:$PORT -sTCP:LISTEN -Fpn 2>/dev/null || true)"
@@ -235,19 +243,27 @@ validate_cdp_listener() {
   local targets
   targets="$(/usr/bin/curl --noproxy '*' --fail --silent --show-error --max-time 2 \
     "http://127.0.0.1:$PORT/json/list" 2>/dev/null || true)"
-  [[ -n "$targets" ]] || return 20
+  [[ -n "$targets" ]] || return 30
+  local target_code=0
   "$NODE" -e '
-const items = JSON.parse(process.argv[1]);
-if (!Array.isArray(items) || !items.some((item) => {
-  if (item?.type !== "page" || typeof item.url !== "string" || !item.url.startsWith("app://")) return false;
+let items;
+try { items = JSON.parse(process.argv[1]); } catch { process.exit(20); }
+if (!Array.isArray(items)) process.exit(20);
+const pages = items.filter((item) => item?.type === "page"
+  && typeof item.url === "string" && item.url.startsWith("app://"));
+if (!pages.length) process.exit(30);
+if (!pages.every((item) => {
+  if (typeof item.id !== "string" || !/^[A-Za-z0-9._-]{1,200}$/.test(item.id)) return false;
   try {
     const url = new URL(item.webSocketDebuggerUrl);
-    return url.protocol === "ws:" && ["127.0.0.1", "localhost", "::1"].includes(url.hostname)
-      && url.port === "9341" && /^\/devtools\/page\/[A-Za-z0-9._-]+$/.test(url.pathname);
+    return url.protocol === "ws:" && ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname)
+      && url.port === "9341" && !url.username && !url.password && !url.search && !url.hash
+      && url.pathname === `/devtools/page/${item.id}`;
   } catch { return false; }
-})) process.exit(1);
-' "$targets" >/dev/null 2>&1 || return 20
-  return 0
+})) process.exit(20);
+' "$targets" >/dev/null 2>&1 || target_code=$?
+  (( target_code == 0 || target_code == 30 )) || return 20
+  return "$target_code"
 }
 
 listener_state() {
@@ -257,6 +273,8 @@ listener_state() {
     print -- '安全可用'
   elif (( code == 10 )); then
     print -- '未开启'
+  elif (( code == 30 )); then
+    print -- 'Codex 页面初始化中'
   else
     print -- '不安全（已拒绝）'
   fi
@@ -513,10 +531,11 @@ write_restart_state() {
   ensure_companion_state
   local timestamp="$(/bin/date -u '+%Y-%m-%dT%H:%M:%SZ')"
   local temporary="$COMPANION_STATE/.restart-status.$$"
-  print -r -- "$state\t$timestamp\t$id\t$message" >| "$temporary"
+  local line="$state"$'\t'"$timestamp"$'\t'"$id"$'\t'"$message"
+  print -r -- "$line" >| "$temporary"
   /bin/chmod 600 "$temporary"
   /bin/mv -f "$temporary" "$RESTART_STATE"
-  print -r -- "$state\t$timestamp\t$id\t$message" >> "$RESTART_LOG"
+  print -r -- "$line" >> "$RESTART_LOG"
   /bin/chmod 600 "$RESTART_LOG"
 }
 
@@ -581,6 +600,20 @@ worker_wait_for_go() {
 show_restart_status() {
   if [[ -f "$RESTART_STATE" && ! -L "$RESTART_STATE" ]]; then
     local line="$(/usr/bin/tail -n 1 "$RESTART_STATE" 2>/dev/null || true)"
+    local tab=$'\t'
+    line="${line//\\t/$tab}"
+    local -a fields=("${(@ps:\t:)line}")
+    if (( ${#fields} == 4 )) && [[ "$fields[1]" == (scheduled|running) ]]; then
+      local tuple="$(read_owner_tuple 2>/dev/null || true)"
+      if valid_owner_tuple "$tuple"; then
+        local -a owner=("${(@f)tuple}")
+        local current_birth="$(process_birth "$owner[5]" 2>/dev/null || true)"
+        if [[ "$owner[2]" == "$fields[3]" \
+          && ( -z "$current_birth" || "$current_birth" != "$owner[6]" ) ]]; then
+          line="failed"$'\t'"$fields[2]"$'\t'"$fields[3]"$'\t'"任务进程已退出，未记录应用成功"
+        fi
+      fi
+    fi
     [[ -n "$line" ]] && print -r -- "最近一次重启任务：$line" || print -- '最近一次重启任务：无'
   else
     print -- '最近一次重启任务：无'
@@ -626,6 +659,7 @@ hot_apply() {
   else
     local code=$?
     (( code == 10 )) && die "Codex 未开启安全热切换端口；请使用 restart-apply '$id' --yes。"
+    (( code == 30 )) && die 'Codex 热切换页面仍在初始化，请稍后重试。'
     die "端口 $PORT 存在不安全或无关监听者，已拒绝操作。"
   fi
   switch_without_apply "$id"
@@ -671,6 +705,8 @@ restart_worker() {
   RESTART_WORKER_ID="$id"
   RESTART_LOCK_TOKEN="$lock_token"
   RESTART_OPERATION_ID="$operation_id"
+  RESTART_WORKER_CLEANED=0
+  trap 'restart_worker_exit $?' ZERR
   trap 'restart_worker_exit $?' EXIT
   trap 'exit 129' HUP
   trap 'exit 130' INT
@@ -727,7 +763,7 @@ restart_worker() {
   fi
   write_restart_state "$worker_tuple" 'succeeded' "$id" "$result_message"
   release_restart_lock "$worker_tuple"
-  trap - EXIT HUP INT TERM
+  trap - ZERR EXIT HUP INT TERM
   /usr/bin/osascript -e 'on run argv' \
     -e 'display notification (item 1 of argv) with title "Codex 壁纸"' \
     -e 'end run' "$result_message" >/dev/null 2>&1 || true
@@ -735,6 +771,8 @@ restart_worker() {
 
 restart_worker_exit() {
   local code="${1:-1}"
+  (( RESTART_WORKER_CLEANED == 0 )) || return 0
+  RESTART_WORKER_CLEANED=1
   if (( code != 0 )); then
     write_restart_state "${RESTART_OWNER_TUPLE:-}" 'failed' "${RESTART_WORKER_ID:-未知}" \
       '重启或应用失败' 2>/dev/null || true
@@ -803,6 +841,7 @@ choose_theme_gallery() {
   else
     local code=$?
   fi
+  (( code == 30 )) && die 'Codex 热切换页面仍在初始化，请稍后重试。'
   (( code == 10 )) || die "端口 $PORT 存在不安全或无关监听者，已拒绝操作。"
   local decision
   decision="$(/usr/bin/osascript -e 'try' \
@@ -843,6 +882,107 @@ import_image() {
   print -- "已导入但未应用：$name [${added[1]}]"
 }
 
+zip_error_reason() {
+  "$NODE" - "$1" <<'NODE'
+const fs = require('node:fs');
+const text = fs.readFileSync(process.argv[2], 'utf8');
+const reasons = [
+  [/changed while|changed size|while being copied/i, '文件在读取期间发生变化'],
+  [/exceeds|larger than|limit/i, '主题包超过大小或资源限制'],
+  [/symbolic link|regular file|ELOOP/i, '文件类型或符号链接未通过校验'],
+  [/SHA-256|SHA256/i, 'SHA256 校验不匹配'],
+  [/byte count/i, 'ZIP 字节数不匹配'],
+  [/requires Dream Skin|unsupported.*version|installed version/i, '主题要求更高或不支持的引擎版本'],
+  [/CSS|stylesheet/i, '主题样式未通过安全校验'],
+  [/image|pixel|dimension/i, '主题图片未通过校验'],
+  [/zip|archive|extract/i, 'ZIP 结构或内容未通过校验'],
+];
+process.stdout.write(reasons.find(([pattern]) => pattern.test(text))?.[1] ?? '主题格式或兼容性未通过校验');
+NODE
+}
+
+import_zip() {
+  (( $# == 1 || $# == 5 )) || die 'import-zip 需要 ZIP 绝对路径；可附带 SHA256 和字节数。'
+  local archive="$1"
+  shift
+  local -a checks=()
+  if (( $# > 0 )); then
+    [[ "$1" == '--expected-sha256' && "$3" == '--expected-bytes' ]] \
+      || die '校验参数必须为 --expected-sha256 <SHA256> --expected-bytes <字节数>。'
+    local digest="$2" bytes="$4"
+    [[ ${#digest} == 64 && "$digest" != *[^0-9a-f]* ]] || die 'SHA256 必须是 64 位小写十六进制。'
+    [[ "$bytes" == <-> && ${#bytes} -le 8 ]] || die 'ZIP 字节数无效。'
+    (( bytes > 0 && bytes <= 33554432 )) || die 'ZIP 不能超过 32 MiB。'
+    checks=(--expected-sha256 "$digest" --expected-bytes "$bytes")
+  fi
+  [[ "$archive" == /* ]] || die 'ZIP 路径必须是绝对路径。'
+  [[ -f "$archive" && ! -L "$archive" && -r "$archive" ]] || die 'ZIP 不存在、不可读或是符号链接。'
+  [[ "${archive:l}" == *.zip ]] || die '只接受普通 .zip 主题包。'
+  require_mutation_runtime
+  [[ -f "$IMPORT_ZIP" && ! -L "$IMPORT_ZIP" ]] || die 'Dream Skin 缺少安全的 ZIP 导入脚本。'
+  local snapshotter="$ENGINE_SCRIPTS/snapshot-theme-zip.mjs"
+  [[ -f "$snapshotter" && ! -L "$snapshotter" ]] || die 'Dream Skin 缺少安全的 ZIP 快照脚本。'
+  local workspace="$(/usr/bin/mktemp -d)"
+  /bin/chmod 700 "$workspace"
+  local result parsed
+  {
+  /usr/bin/touch "$workspace/error.log"
+  /bin/chmod 600 "$workspace/error.log"
+  if ! "$NODE" "$snapshotter" "$archive" "$workspace/package.zip" 2>"$workspace/error.log"; then
+    die "无法创建主题 ZIP 快照：$(zip_error_reason "$workspace/error.log")。"
+  fi
+  # Read only bounded JSON from a private snapshot; the engine validates and
+  # extracts the full package afterwards. Reject IDs already in the library.
+  "$NODE" - "$workspace/package.zip" "$THEMES_ROOT" <<'NODE' || die 'ZIP 主题身份不明确或已存在；已拒绝覆盖。'
+const fs = require('node:fs');
+const path = require('node:path');
+const { execFileSync } = require('node:child_process');
+try {
+  const archive = process.argv[2];
+  const names = execFileSync('/usr/bin/unzip', ['-Z1', archive], { maxBuffer: 65536 }).toString('utf8').split('\n');
+  const configs = names.filter(name => name === 'theme.json' || /^[^/]+\/theme\.json$/.test(name));
+  if (configs.length !== 1) process.exit(1);
+  const config = JSON.parse(execFileSync('/usr/bin/unzip', ['-p', archive, configs[0]], { maxBuffer: 1048576 }).toString('utf8'));
+  if (typeof config.id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(config.id) || config.id.endsWith('.')) process.exit(1);
+  try { fs.lstatSync(path.join(process.argv[3], config.id)); process.exit(1); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+} catch { process.exit(1); }
+NODE
+  if ! result="$(/bin/bash "$IMPORT_ZIP" --file "$workspace/package.zip" "${checks[@]}" 2>"$workspace/error.log")"; then
+    local reason="$(zip_error_reason "$workspace/error.log")"
+    die "主题 ZIP 导入失败：$reason。"
+  fi
+  parsed="$(print -r -- "$result" | "$NODE" -e '
+    let input = "";
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("data", chunk => input += chunk);
+    process.stdin.on("end", () => {
+      try {
+        const value = JSON.parse(input);
+        if (value.replaced === true || !["imported", "duplicate"].includes(value.status)
+            || typeof value.id !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(value.id)) {
+          process.exitCode = 1; return;
+        }
+        process.stdout.write(`${value.status}\n${value.id}`);
+      } catch { process.exitCode = 1; }
+    });
+  ')" || die '导入器返回了无效的结果。'
+  local -a fields=("${(@f)parsed}")
+  (( ${#fields} == 2 )) || die '导入器返回了不完整的结果。'
+  local id="$fields[2]"
+  local dir="$(archive_dir "$id")"
+  validate_payload "$dir"
+  local name="$(read_theme_name "$dir/theme.json")"
+  if [[ "$fields[1]" == duplicate ]]; then
+    print -- "主题已存在，未重复导入：$name [$id]"
+  else
+    print -- "已导入但未应用：$name [$id]"
+  fi
+  } always {
+    /bin/rm -rf -- "$workspace"
+  }
+}
+
 main() {
   local command="${1:-}"
   case "$command" in
@@ -869,6 +1009,10 @@ main() {
     import)
       (( $# == 3 )) || die 'import 需要图片绝对路径和主题名称。'
       import_image "$2" "$3"
+      ;;
+    import-zip)
+      shift
+      import_zip "$@"
       ;;
     __restart-worker)
       (( $# == 5 )) || die '内部命令不可直接使用。'
