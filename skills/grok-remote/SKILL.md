@@ -1,6 +1,8 @@
 ---
 name: grok-remote
 description: Reuse the macOS Grok Bot login and its existing device channel to discover computers, verify their identity, and execute authorized remote terminal commands. Use for Grok-connected Macs, including machines on other networks.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Grok Remote

@@ -1,6 +1,8 @@
 ---
 name: ask-questions
 description: Use when the user needs to ask someone a question and wants to know what to ask or how to phrase it, whether a help request to a colleague, expert, community or boss, or a question list for a conversation (requirements, handoff, review, 1:1, feedback, interview). Also use when the agent itself must ask the user clarifying questions, or the user asks to be interviewed. Does the pre-question homework first, then produces a ready-to-send question or a ranked question list. Trigger phrases include 怎么问, 问什么, 该问同事什么, 帮我写个提问, 帮我准备要问的问题, 问我几个问题, 采访我, ask a colleague, what should I ask, draft a question, clarifying questions, interview me.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Ask Questions
