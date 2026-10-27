@@ -1,4 +1,0 @@
-interface:
-  display_name: "Browser Use CLI"
-  short_description: "Control existing Chrome via CLI"
-  default_prompt: "Use $browser-use to inspect and operate my existing Chrome tab."
