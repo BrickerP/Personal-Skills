@@ -34,6 +34,18 @@ The pre-submit helper only inspects DOM. A pass does not excuse an unanswered
 question. Read errors by human label, not generated ID. Checkbox-group quirks
 must be inspected under the documented gate result, not bypassed.
 
+## Known silent failures (highest-frequency time sinks)
+
+These look like success and are not. Full fingerprints: [FIELD-NOTES §2](../../daily-job-apply/FIELD-NOTES-1218.md).
+
+- **Hidden required checkbox labelled only "Acknowledge/Confirm"** (Cloudflare, Everpure, Vercel, Starburst): no usable label text, and `element.click()` often no-ops. Find it with `querySelectorAll('input')` + `checkValidity()`, then `scrollIntoView({block:'center'})` and a real click.
+- **A required control that appears only after the first submit** (Vercel "double-check all information", Upstart "Location Preference"). Submit → read errors by label → fill → submit again.
+- **Two dropdowns both named "Country"**: the first is the phone dial code, the second is residence. Filling the wrong one leaves the real field empty.
+- **`intl-tel-input` country listbox stays expanded** and swallows every click; select the country or dispatch `mousedown` before continuing.
+- **Errors after a successful submit are stale**; only `/confirmation` or a matching receipt proves submission.
+- **Location autocomplete may never commit and still submit** (Brex, SingleStore). Do not loop on an empty `#candidate-location`.
+- **A code field is verification pending, not a receipt** — and codes are throttled per company.
+
 ## Submit and email verification
 
 After policy, factual answers and the gate pass, click the current Submit once.
