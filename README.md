@@ -49,5 +49,6 @@ git clone https://github.com/BrickerP/Personal-Skills.git ~/projects/personal/sk
 **内容/资料**：obsidian · lark-history-exporter · gmail-ai-daily-ops · lavayou-author-lens
 **创作/前端**：creative · draw-something · astryx-frontend · imagegen
 **文档**：pdf · pdf-sanitize
+**代码理解**：repo-atlas（单个 GitHub 仓库 → 单文件 HTML 学习地图，显式调用）
 **沟通**：ask-questions
 **其他**：opentrain-application-agent · migrate-to-codex · gh-address-comments · gh-fix-ci · openai-docs
