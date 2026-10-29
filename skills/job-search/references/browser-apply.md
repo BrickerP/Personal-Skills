@@ -24,6 +24,9 @@ identify Lu (Profile 2, yplmicro@gmail.com). Mismatch stops the run. Never grant
 - React Select/autocomplete requires choosing a real option. Read the options,
   choose the truthful one, then verify it stuck. A displayed DOM string may not
   be committed. Correct once deliberately; persistent failure is ManualFinish.
+- Applicant location comes from FROZEN/profile, never from the job's office
+  city. Onsite availability and relocation are separate user preferences; an
+  application request does not supply those answers.
 - Identify the actual resume attachment control, distinct from resume-autofill.
   Wait for the filename/upload-complete state and inspect autofilled data.
   Failed upload is not permission to loop upload/submit attempts.
@@ -36,15 +39,30 @@ must be inspected under the documented gate result, not bypassed.
 
 ## Known silent failures (highest-frequency time sinks)
 
-These look like success and are not. Full fingerprints: [FIELD-NOTES §2](../../daily-job-apply/FIELD-NOTES-1218.md).
+These are diagnostic examples, not instructions to bypass a required field.
+See [form pitfalls §2](../../daily-job-apply/FIELD-NOTES-1218.md#2-silent-failure-modes).
 
-- **Hidden required checkbox labelled only "Acknowledge/Confirm"** (Cloudflare, Everpure, Vercel, Starburst): no usable label text, and `element.click()` often no-ops. Find it with `querySelectorAll('input')` + `checkValidity()`, then `scrollIntoView({block:'center'})` and a real click.
-- **A required control that appears only after the first submit** (Vercel "double-check all information", Upstart "Location Preference"). Submit → read errors by label → fill → submit again.
-- **Two dropdowns both named "Country"**: the first is the phone dial code, the second is residence. Filling the wrong one leaves the real field empty.
-- **`intl-tel-input` country listbox stays expanded** and swallows every click; select the country or dispatch `mousedown` before continuing.
-- **Errors after a successful submit are stale**; only `/confirmation` or a matching receipt proves submission.
-- **Location autocomplete may never commit and still submit** (Brex, SingleStore). Do not loop on an empty `#candidate-location`.
-- **A code field is verification pending, not a receipt** — and codes are throttled per company.
+- **Generic acknowledgement labels.** For a control named only
+  "Acknowledge/Confirm", read the surrounding question and linked terms before
+  deciding. Scroll using the UI, select through a fresh snapshot ref, then
+  verify checked/selected state. The label alone cannot distinguish privacy
+  consent from arbitration or an AI attestation.
+- **Validation exposes another control.** First inspect the full form, including
+  below the fold. If a submission attempt explicitly reports a missing field,
+  one correction of an approved answer is allowed; re-run the gate before
+  submitting. An uncertain outcome or anti-bot warning never permits a retry.
+- **Two controls called "Country".** Distinguish the phone dial code from
+  residence by surrounding labels. Read the options before picking.
+- **Expanded phone-country listbox.** Select/dismiss it through real UI click
+  or keyboard input, then re-snapshot. Do not dispatch synthetic events.
+- **Empty autocomplete search input.** React Select may clear the search input
+  after choosing an option. Verify the selected label/chip and current gate
+  verdict; an empty input alone proves neither failure nor success. Never treat
+  it as evidence that a required city can be omitted.
+- **Stale errors and missing mail.** Final role-specific success or a matching
+  receipt outranks stale error text. A code field is still verification pending;
+  missing mail does not prove a per-company rate limit or authorize repeated
+  code requests.
 
 ## Submit and email verification
 

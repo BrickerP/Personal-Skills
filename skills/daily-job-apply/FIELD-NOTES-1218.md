@@ -1,89 +1,90 @@
-# Field notes from 1,218 submitted applications
+# Form pitfalls and requisition examples
 
-**Window**: through 2026-10-25. **Ledger**: `~/job-hunt/tracker.csv` (1,218 applied / 216 ManualFinish / 7 Blocked / 0 duplicate ATS keys).
-
-This file is the *empirical* layer. `POLICY.md` says what is allowed; this file says what actually happens
-on the page after you have filled 1,200 of them. Read it before a run, and update it whenever a
-fingerprint below stops being true.
-
----
-
-## 0. The single most important finding
-
-**Form difficulty is inversely correlated with applicant volume.**
-
-| Company type | Form shape | Why |
-|---|---|---|
-| Consumer SaaS (Stripe, Airbnb, Box, Klaviyo) | essay + numeric salary + years + education Discipline | thousands of applicants, so they filter hard |
-| AI chips / robotics / space (Tenstorrent, Figure, SambaNova, Relativity) | name, email, phone, city, one export-control ack | few applicants, so the form is open |
-
-Practical rule: **when the well runs dry, change industry, not keyword.** Dozens of "AI startup" boards
-are exhausted; the same effort spent on "software roles at hardware companies" still yields clean forms.
+The filename is retained for existing links. These examples originated in the
+October 2026 application run; they are not current counts, approved answers or
+permanent company-wide rules. Use the live form and existing records to verify
+what applies now. [POLICY](POLICY.md) and [FROZEN](workflows/04-universal-web-apply.md)
+own decisions and facts; this reference only helps diagnose UI behavior.
 
 ---
 
-## 1. The four policy gates (these dominate everything)
+## 0. Form simplicity does not establish job fit
 
-At 1,218 applications the remaining unfilled pool is gated almost entirely by four things. Each is a
-**policy** decision, not a technical one, so the agent must not guess:
+Some inspected Figure, Tenstorrent and SambaNova requisitions had short forms.
+That does not establish applicant volume, hiring difficulty, callback rates or
+fit with the user's experience. Read the JD before applying. Hardware/robotics
+companies can be useful sources of software roles; a clean form is not a reason
+to apply to an unrelated support, hardware, language-specific or IT role.
 
-| Gate | ManualFinish count | What unblocks it |
-|---|---|---|
-| Essay / required free-text | 44 | user writes or approves a draft |
-| Numeric years of experience | 21 | one number ("3") |
-| Numeric salary expectation | 17 | one range |
-| Education **Discipline** | 10 | one major name |
-
-Plus smaller gates: street address (13), citizenship (7), GPA/SAT (4), arbitration (3), AI-challenge/puzzle (3).
-
-**Corollary**: if a run is producing mostly ManualFinish rows, stop applying and ask for these four
-answers. Continuing to probe produces zero submissions per hour.
-
-> **Daily-50 rule**: if ManualFinish / Blocked outnumber verified submits in the first 10 probes of a run, stop sourcing volume and surface the four gates. Continuing produces ~0 submits/hour.
+Fields are configured per requisition. A blocker on one role does not block
+every role at that employer. The explicit company blocklist remains binding.
 
 ---
 
-## 2. Silent failure modes (the expensive ones)
+## 1. Check existing facts before asking again
 
-Each of these *looks* fine and wastes a submission or an hour. Ordered by cost.
+- Salary, motivation essays, unfamiliar legal commitments and undisclosed
+  personal information follow POLICY's human-decision rules.
+- Total experience, education, GPA and Discipline are not blanket blockers:
+  FROZEN already contains confirmed facts and a Discipline preference. Use them
+  only for the exact supported question. Total tenure does not prove the same
+  years in each technology; unrecorded start dates or skill tenure stay unresolved.
+- A simple factual free-text answer is different from a motivation essay. Read
+  the actual wording, options and required state before classifying it.
+- Do not promise that one answer unlocks a fixed number of roles. Check each
+  still-open requisition for additional blockers first.
+- If blocked/manual probes dominate the first approximately 10 daily-50 probes,
+  stop volume work under POLICY and report only the genuinely missing decisions.
 
-1. **Placeholder submit that never lands.** Greenhouse "Submit application" can no-op while every field
-   reports valid. Require a final success page/state or a matching application-received receipt.
-   A security-code field is verification pending; complete that step before counting a submission.
-   A green `bad:0` is *not* proof of submission.
-2. **Stale error text after a successful submit.** After the code step, `p[id$=-error]` often still shows
-   the pre-submit errors. Trust `/confirmation`, not the error nodes.
-3. **Hidden required checkbox named only "Acknowledge/Confirm".** Cloudflare, Everpure/Pure Storage and
-   Vercel all ship one with no visible label text. It is invisible to `snapshot` grep by label; you find it
-   via `document.querySelectorAll('input,[type=checkbox]')` → `checkValidity()` → then
-   `el.scrollIntoView({block:'center'})` + real click. Plain `element.click()` often no-ops.
-4. **A required dropdown that only appears *after* the first submit** (Vercel: "Please double-check all the
-   information provided above"; Upstart: "Location Preference"). Pattern: submit → read errors by label →
-   fill the newly revealed field → submit again.
-5. **React-controlled text inputs that `fill` cannot commit** (Relativity "able to start within 30-60 days",
-   Intercom "Current Location"). `fill` writes the DOM value but React state stays empty, so validation
-   fails forever. Click the field and use `keyboard type` (real keystrokes); if that still fails, record
-   ManualFinish — do not burn 10 turns.
-6. **Multi-checkbox groups always report invalid.** Greenhouse marks *every* box in a group required.
-   One selection is enough; `bad` count is a false signal. Known groups: "How did you hear", "Which
-   locations", "Languages".
-7. **Location autocomplete that never commits but does not block submission** (Brex, SingleStore).
-   `#candidate-location` stays `""` and the form still submits. Do not loop on it.
-8. **Two "Country" dropdowns.** The first is the phone dial code, the second is residence country.
-   Filling the wrong one leaves the real field empty and the submit silently fails on phone.
-9. **`intl-tel-input` country listbox stays expanded** and swallows every click on the page. If clicks stop
-   landing, inspect the current country listbox and select the option with a real UI click or keyboard input.
-   Do not dispatch synthetic events; if it still cannot commit, record ManualFinish.
-10. **Greenhouse code throttling is per company.** A third request in a day may never arrive (Braze).
-    Re-read the *last* `.a3s` body; the thread collapses and the newest code is at the bottom.
-11. **City / `#candidate-location` commit.** `type → ArrowDown → Enter` often leaves the field empty and surfaces `candidate-location-error`. Prefer: type city text → **click the matching list option** (or chrome-use `pick` when it works) → re-read the value. If still empty and the board historically submits anyway (Brex/SingleStore), submit once and trust errors / `/confirmation`.
-12. **Session hang / chrome-use version pin.** If `jobapply2` sticky-hangs, open a new session name with the same `--browser` instead of retrying the dead one. `pick` may be flaky; installed chrome-use version can differ from the binary still running until the extension/daemon restarts. See the [browser reference](../job-search/references/browser-apply.md#uncertainty-and-session-hygiene). The retired session name `jobapply` is not reused.
+---
+
+## 2. Silent failure modes
+
+1. **Validity is not success.** A form can report `bad:0` without submitting.
+   Require a final role-specific success state or matching receipt. A security
+   code is verification pending, not a submission receipt.
+2. **Stale errors.** Old error nodes can remain after final success. Verify the
+   success state before interpreting them; never submit again after success.
+3. **Generic acknowledgements.** Controls labelled "Acknowledge/Confirm" require
+   reading the surrounding policy. The same label can mean privacy, a legal
+   waiver or an AI attestation. Locate the current control, use real UI input,
+   then verify selection. Read-only DOM inspection may help find its label.
+4. **Fields missed before submit.** Vercel review-confirmation and Upstart
+   location-preference controls have surfaced during validation. Inspect the
+   full form first; after an explicit missing-field error, correct an approved
+   answer once and re-run the gate. An unknown submit outcome is not retryable.
+5. **Text field versus combobox.** A React Select search box is also an `input`.
+   Typing "Yes" into it does not select an option. Use its role, current options
+   and selected label to diagnose it. A DOM value alone cannot establish a React
+   bug; persistent failure after one deliberate UI correction is ManualFinish.
+6. **Checkbox groups.** Some forms mark each member required. Read the group
+   instructions and actual checked state; follow the read-only gate's verdict
+   instead of bypassing an invalid result or clicking the same box repeatedly.
+7. **Empty city search input.** The input can clear when the selected city is
+   rendered elsewhere. Verify the selected label/chip and gate. This does not
+   mean the required location may be omitted. Applicant location is from FROZEN,
+   never copied from the posting's office city.
+8. **Two country controls.** Distinguish phone dial code from residence using
+   surrounding labels. Correcting one does not fill the other.
+9. **Expanded country listbox.** If it intercepts clicks, select/dismiss it with
+   real UI input and re-snapshot. Do not dispatch events or manipulate state.
+10. **Threaded code mail.** Inspect the newest matching message, including a
+    collapsed thread's last message. Never print codes or phone numbers.
+    Missing mail alone does not establish company-specific throttling; respect
+    visible rate limits and do not repeatedly request codes.
+11. **Tab-close warnings.** An untracked-tab warning is not proof that the target
+    application tab closed. Verify the agent-owned tab's absence with `tab list`;
+    do not close unrelated or user-kept tabs to clear a warning.
+12. **Session hang.** Follow the
+    [browser reference](../job-search/references/browser-apply.md#uncertainty-and-session-hygiene)
+    for a fresh pinned session. Do not restart another bot's browser or retry
+    a dead session repeatedly. A tool-version mismatch is a hypothesis to check.
 
 ---
 
 ## 3. Board fingerprints
 
-### 3.1 Clean forms — fill these without hesitation
+### 3.1 Previously short forms — inspect the current requisition
 
 > **Gate that overrides everything below:** any company key in
 > `data/blocked-companies.json` (canonical `~/job-hunt/data/blocked-companies.json`)
@@ -92,81 +93,74 @@ Each of these *looks* fine and wastes a submission or an hour. Ordered by cost.
 > 84 keys including `twilio`, `abnormal`, `elastic`, `affirm`, `databricks`,
 > `togetherai`, `pinterest`, `nuro`, `samsara`, `scaleai`, `gitlab`, `okta`.
 
-| Board | Fields actually required |
+| Board | Observed form shape, not a reusable answer map |
 |---|---|
-| **Figure** (figureai) | name, email, phone, country, Location (City), LinkedIn, Website. Nothing else. 6/7 reqs submitted |
-| **Tenstorrent** | same + one "I have read and understand the Export Control statement" = Yes + optional EEO |
+| **Figure** (figureai) | Several roles used contact, resume, city and profile links; other roles added industry-experience questions |
+| **Tenstorrent** | Contact/profile links plus an export-control-statement acknowledgement; read the statement |
 | **SambaNova** | name/email/phone/city/LinkedIn/website only |
-| **Mercury** | + Portfolio, "From where do you intend to work?", visa=No |
+| **Mercury** | Portfolio/website, intended working location and visa question |
 | **Twilio** | Form shape is clean (preferred name, LinkedIn, 2 acks, how-did-you-hear) **but** company key `twilio` is in `data/blocked-companies.json` (over-apply / policy). **Always check the blocked list first**; if listed → Skip `company-blocked`, do not re-probe. Do not delete the key. |
-| **Starburst** | + Privacy "Acknowledge/Confirm", intended work location (state), support-experience=Yes, PST=Yes |
-| **Buildkite / Ketch / PathAI / PlanetScale** | name/email/phone/city + a few free-texts that are *prefilled-able* facts |
+| **Starburst** | Privacy acknowledgement, intended work state, support experience and timezone questions; answers require evidence |
+| **Buildkite / Ketch / PathAI / PlanetScale** | Contact/profile fields and company-specific factual questions; inspect each one |
 
-### 3.2 Forms with a standard, known-good sequence (high volume)
+### 3.2 Per-role variations to look for
 
-**DoorDash** (`doordashusa`) — essay-free, ~10 required controls, demographics mandatory:
-authorized=Yes · sponsor-now=No · sponsor-future=No · worked-at-DD=No · privacy=Yes · SMS=Yes ·
-Gender=Male · transgender=No · Hispanic=No · Race=Asian · Veteran="I am not a protected veteran" ·
-Disability="No, I don't have a disability". Some reqs inject **extra** questions
-("3+ years professional experience", "3+ years ETL", "blog influence 1-5", "JS+JVM 3 yrs") — always probe
-per requisition, never batch by company.
+- **DoorDash:** authorization, separate current/future sponsorship, employment
+  history, privacy, messaging consent and demographics. Some roles add ETL or
+  JavaScript/JVM tenure and engineering-blog questions. FROZEN says SMS consent
+  is No and demographics should be declined where possible; historical choices
+  are not approved defaults.
+- **Relativity:** export status, sponsorship and sometimes F1/OPT, onsite or
+  start-date questions. Distinguish a U.S. person from a U.S. citizen. Verify
+  availability/onsite preferences rather than defaulting to Yes.
+- **New Relic:** phone country, residence and state are separate controls. Some
+  roles additionally ask about degree and language-specific experience.
+- **Upstart:** current-location and familiarity selects plus a location-preference
+  checkbox group. Choose from approved facts/preferences, not previous answers.
+- **Cloudflare:** referral-source text, location/relocation, sponsorship and an
+  acknowledgement. Identify the actual hub from the JD; "Hybrid" is not a city.
+- **Abnormal:** preferred name, postal code, current company and eligibility;
+  some roles add production-code/language questions. Resolve company aliases
+  against the blocklist before probing.
+- **GitLab:** self-ratings and location choices. Prior Linux/Git/MVC ratings in a
+  transcript are not facts or user-approved self-assessments.
+- **Calendly:** work-state options and interview-recording consent. Read the
+  exact wording and current preference; gender labels differ across employers.
 
-**Relativity Space** — EXPORT COMPLIANCE = "I am currently a U.S. Person" (green card qualifies),
-onsite-5-days=Yes, hear-about is a checkbox group (one click), some reqs add F1/OPT=No and a
-free-text "if your location differs…" that must be typed, not filled.
+### 3.3 Previously encountered questions, not permanent board bans
 
-**New Relic** — all three reqs share one field set: Country=US dial, residence=US, State=CA,
-employed-before=No, currently-working=No, authorized=Yes, sponsor=No, privacy=Yes, hear=LinkedIn,
-Gender/Hispanic/Veteran/Race.
-
-**Upstart** — two custom comboboxes (current location, familiarity) + a "Location Preference" checkbox
-group that only appears after the first submit. Remote is the correct pick for remote reqs.
-
-**Cloudflare** — "How did you hear" free text + relocate pick + immigration=No + the hidden
-Acknowledge checkbox. Reqs whose location is Austin/London/Lisbon are **relocation-gated** and must be
-skipped under the no-relocation rule.
-
-**Abnormal Security** — Preferred first/last name, Zip 94105, Current Company, eligible=Yes, sponsor=No,
-current employee=No, previously=No + full demographics. Some reqs add
-"shipping production code as IC"=Yes and "primary language"=Python.
-
-**GitLab (AMER)** — three self-rating dropdowns Poor/Fair/Average/Good/Excellent
-(Linux=Good, Git=Excellent, MVC=Good) + location picker Canada/US/None + country of residence.
-
-**Calendly** — gender options are "Man/Woman/…", state picker = California, ZIP 94105,
-interview-recording opt-out is allowed.
-
-### 3.3 Board-level or company-level blockers (do not re-probe)
+For an allowed company, inspect the current requisition. These examples do not
+override FROZEN or justify calling every employer's form unfillable. Explicit
+company blocks and live anti-bot warnings still stop work.
 
 | Scope | Blocker |
 |---|---|
-| **SpaceX** (all reqs) | GPA (UG/grad/doc) + SAT + ACT + GRE + clearance |
-| **Tailscale** (all US reqs) | "Why Tailscale" essay + street address |
-| **Coinbase** (all reqs) | education **Discipline** required |
-| **Anthropic** (all reqs) | "Why Anthropic?" required on every requisition |
+| **SpaceX** | GPA, standardized test scores and clearance; use only supported facts |
+| **Tailscale** | "Why Tailscale" essay and street address on inspected roles |
+| **Coinbase** | Education Discipline; compare options to FROZEN |
+| **Anthropic** | "Why Anthropic?" on inspected roles |
 | **Klaviyo** | Discipline + required AI-usage free text |
 | **Airbnb** | Candidate AI Usage Attestation (interview-process) |
-| **Stripe** | no address field, but numeric "years of experience as a software engineer" on every req |
-| **Samsara / SoFi / Coalition / Glean** | numeric years-of-experience questions |
+| **Stripe** | Full-time industry-experience wording; compare the exact question to FROZEN |
+| **Samsara / SoFi / Coalition / Glean** | General or skill-specific tenure; total experience does not prove skill tenure |
 | **Lithic** | numeric salary + a puzzle ("cracked the code") |
-| **Arize** | AI-challenge ("What is 10 times 10?") |
+| **Arize** | An arithmetic question was observed; inspect its context under policy rather than inferring an AI prohibition from arithmetic alone |
 | **AssemblyAI** | 3 essays + activation-function challenge |
-| **Ashby platform-wide** | form validates, captcha token present, Submit no-ops (Baseten/Sierra/Decagon/Ramp). ~469 candidates unreachable |
-| **Intercom** | custom `Current Location` select never commits |
-| **Natera** | work-history end month with no "Present" option |
+| **Ashby examples** | No final success was observed on several attempts; that is not proof of a permanent platform-wide outage |
+| **Intercom** | Current Location select appeared uncommitted; inspect selected labels/options before diagnosing a bug |
+| **Natera** | Work-history date controls; inspect for a current-role checkbox, never invent an end date |
 
 ---
 
-## 4. Discovery: what still yields, what is exhausted
+## 4. Discovery checks
 
 | Source | Status |
 |---|---|
-| Greenhouse slug guessing | **exhausted** — a 161-domain probe returned 6 candidates, mostly non-US |
-| "AI startup" boards | **exhausted** — the 30 best-known boards are all applied out |
-| HN "Who is hiring" | **low yield** — October thread has 56 Greenhouse links; after `html.unescape()` only 32 are new and nearly all are Senior/Staff/Principal |
-| **Software roles at hardware/robotics/chip companies** | **best remaining** — Tenstorrent (5), Figure (7), SambaNova, Relativity |
-| Tracker rows marked `skip-email-verification` | **retryable** — 10 existed, 2 recovered for free (Upstart, Vercel); the rest re-checked and found to require essays or were Senior |
-| Gmail for outcomes | Historical 1,218-application snapshot recorded zero interview invites; inspect current outcomes through the Review stage when requested, not as an automatic side effect of applying |
+| Greenhouse board discovery | Prefer links from official careers pages over guessing slugs; failed guesses do not establish market exhaustion |
+| Public hiring posts | Parse actual link targets, not truncated display text; recheck that each requisition is still open |
+| Hardware/robotics/chip companies | Evaluate software roles against actual experience; form length is not a fit score |
+| `skip-email-verification` rows | Inspect existing proof and current preflight before revisiting; `submit-unverified` requires reconciliation |
+| Gmail outcomes | Use the authorized Review stage; report the actual query/date window and separate acknowledgements, assessments and interview invites |
 
 HN extraction gotcha: Algolia returns HTML-escaped text (`https:&#x2F;&#x2F;…`).
 `html.unescape(text)` **before** the regex, or you get 0 matches and wrongly conclude the thread is empty.
@@ -179,34 +173,24 @@ HN extraction gotcha: Algolia returns HTML-escaped text (`https:&#x2F;&#x2F;…`
   `DUPLICATE SKIPPED`). That refusal is a stop sign, not a bug. `--force` only for a knowing resubmission.
 - Keys are `gh:<job id>` / `ashby:<uuid>` / `lever:<uuid>` / `hn:<id>` / cleaned URL — so
   `/jobs/<id>` and `/embed/job_app?token=<id>` collide correctly.
-- Run the duplicate audit after every batch: parse `(?:jobs/|token=)(\d{4,})` out of `JD_URL` and count.
-  Current state: **0 duplicates**.
+- Audit current records by ATS identity after a batch. A Greenhouse-only regex
+  does not prove zero duplicates across Ashby, Lever or other URLs.
 - `ManualFinish` rows are debt, not failure. Keep the reason in `Notes` so a later session can group them
   and ask the user for the *one* answer that unlocks the group.
-- Ledger vs tracker drift is real: a later ManualFinish upsert can overwrite a real submission. When a
-  count looks wrong, grep the ledger for the company and repair the tracker row.
+- If tracker and ledger disagree, preserve confirmed submission evidence and
+  report the discrepancy. Reconcile only under an authorized record-update task.
+- The preflight helper unifies ATS URL variants, counts Ack/Rejected as applied,
+  and emits one verdict. Timeout/read-error means no permission to apply; it does
+  not prove a particular filesystem root cause. See [Apply](../job-search/workflows/apply.md#required-check-for-every-role).
 - During Apply, mailbox access is for the current application's verification code or receipt. Use [Review](../job-search/workflows/review.md) for an authorized outcomes review; status-only produces proposals, and record changes require the current explicit update/reconcile request or confirmation. **Do not** send follow-ups on auto-ack mail.
 
 ---
 
 ## 6. Pre-run checklist (daily ~50 zero-gate)
 
-Mirror of `COLD-START.md` → Daily ~50 zero-gate preflight. Do not start volume until all of these pass:
-
-1. Chrome-use probe: `chrome-use browsers` and `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list --full` → **Lu (Profile 2, yplmicro@gmail.com)**. `TZ=Asia/Shanghai date`.
-2. Reconnect or new session name if hung (same `--browser`). Never grant chrome-use `auth always`.
-3. PDF hash vs `pdf-hashes.txt`. STOP on drift.
-4. Profile Lu confirmed whenever `profile:` prints.
-5. Load the helper's effective list: `~/job-hunt/data/blocked-companies.json` first, skill-local `data/blocked-companies.json` fallback (first nonempty, not merged). Twilio (`twilio`) if listed = Skip `company-blocked`. `JOB_APPLY_PHONE` exists in env (never echo).
-6. Run `job_dedupe_check.py` for every company/role/URL before open; only exit 0 and final JSON `ok: true` passes. Errors/missing output stop work. Job-id checks supplement, never replace, it: boards / job-boards / embed token are one job. This check is part of Apply, regardless of whether the dashboard was used.
-7. Zero-gate Greenhouse queue only for this routine.
-8. ≥90s between verified submits.
-9. Close the tab after each verified record. One active apply tab. After navigation, re-snapshot before the next click (refs and viewport are stale).
-10. Stop early if ManualFinish / Blocked dominate the first ~10 probes.
-11. Proof is a final success page/state or matching application-received receipt. A security-code field is verification pending; complete it and confirm final success. CAPTCHA/SMS stay user blockers → ManualFinish.
-12. Return the run summary in the calling surface. An existing bot routine uses its configured delivery; do not send to another chat from an ordinary invocation.
-
-Recorded bio facts only: DOB `1999-08-03` when asked; OSU graduation `2021`. Years floor stays **3**. Do not invent any other bio field. Before ending a run: duplicate audit. New fingerprints belong in a commit to Personal-Skills, not only in local notes.
+Use [COLD-START](COLD-START.md)
+and [Apply](../job-search/workflows/apply.md). This reference adds no alternate
+preflight, answer table, pacing rule or permission to submit.
 
 ---
 

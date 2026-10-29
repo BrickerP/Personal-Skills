@@ -36,7 +36,7 @@ chrome-use browsers                                                          # p
 chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list --full   # starts the session and prints the `profile:` line
 ```
 
-If that session sticky-hangs (commands freeze, extension silent), do not thrash it. Open a **new** session name (for example `jobapply3`) with the same `--browser yplmicro@gmail.com`, and record the rename in the run notes. The retired name `jobapply` is not reused. Benign warning `close incomplete: untracked tab` — ignore. After any navigation, refs and the viewport are stale: `snapshot -i` again before the next click or fill.
+If that session sticky-hangs (commands freeze, extension silent), do not thrash it. Open a **new** session name (for example `jobapply3`) with the same `--browser yplmicro@gmail.com`, and record the rename in the run notes. The retired name `jobapply` is not reused. An `untracked tab` close warning does not prove closure: verify the agent-owned tab is absent with `tab list`, without touching unrelated or user-kept tabs. After any navigation, refs and the viewport are stale: `snapshot -i` again before the next click or fill.
 
 ### 3. Profile check（连接的 Chrome 身份校验）
 

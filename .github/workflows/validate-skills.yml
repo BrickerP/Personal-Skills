@@ -19,3 +19,5 @@ jobs:
         run: python3 scripts/validate.py
       - name: Test Grok remote transport
         run: python3 -m unittest discover -s skills/grok-remote/tests -v
+      - name: Test job application preflight
+        run: python3 -m unittest discover -s skills/daily-job-apply/tests -p 'test_job_dedupe_check.py' -v

@@ -24,7 +24,7 @@ from workflow 04 for that exact company, role and URL. This is part of Apply,
 including direct requests and legacy callers; running the Review/dashboard is
 not a prerequisite and cannot substitute for this check.
 
-Continue only when the helper exits **0** and its final JSON verdict is
+Continue only when the helper exits **0** and its single JSON verdict is
 `ok: true`. `company-blocked`, duplicate and cap results stop the role. A missing
 or unreadable list, exception, empty output or an unparseable result stops work;
 never treat a failed check as permission. Sourcing output and clean-form notes
@@ -35,6 +35,21 @@ The helper reads `~/job-hunt/data/blocked-companies.json` first, then the skill'
 merging them. It currently reads history from fixed `~/job-hunt` paths; see
 [shared state](../references/shared-state.md) before using custom runtime paths.
 Age alone does not expire a block; changes to the list require the user's decision.
+
+The check has a **10-second local-read deadline** (macOS/Linux, `--timeout`
+sets a positive seconds value). Exit 20 means policy/duplicate/cap rejection;
+exit 21 with `dedupe-check-timeout` or `dedupe-check-error` means evidence could
+not be checked. Both stop the role. Inspect the reported input/storage issue;
+rerun the read-only check after resolving it, never skip the archive, edit
+history or treat a timeout as permission. A prior filesystem stall does not by
+itself identify iCloud or any other root cause.
+
+The helper compares stable ATS identities across tracker, ledger and archive,
+checks both company name and official board slug, and counts Submitted,
+DuplicateSubmitted, Ack and Rejected toward the company cap. A confirmed
+duplicate or cap found locally can reject early without scanning the archive.
+An allow verdict still requires every available evidence source to be read.
+`submit-unverified` records stop for reconciliation rather than automatic retry.
 
 ## Agent-driven work
 

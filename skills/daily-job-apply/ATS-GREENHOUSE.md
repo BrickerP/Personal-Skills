@@ -85,7 +85,7 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
    - Keep `token=<jobId>` and path `jobs/<id>` as the ATS key. Never treat `?gh_src=` / UTM variants as distinct jobs.
    - `boards.greenhouse.io/<board>/jobs/<id>` ≡ `job-boards.greenhouse.io/...` ≡ `.../embed/job_app?for=<board>&token=<id>` for dedupe. Prefer opening the embed or job-boards form URL that actually hydrates `#first_name`.
    - Do **not** use board-root URLs as apply URLs (they 302 to the careers site).
-   - If a `norm_url` helper and the tracker disagree, trust the job-id regex `(?:jobs/|token=)(\d{4,})` plus `record-application.py` refusal (exit 2).
+   - `job_dedupe_check.py` compares path and embed URLs as `gh:<id>` and checks tracker, ledger and archive. A regex or the post-submit recorder cannot replace that preflight. Any disagreement stops the role for inspection; do not override a negative/missing verdict.
 2. **A board root path is not proof of Greenhouse** — `job-boards.greenhouse.io/nebius` **302s** to
    `careers.nebius.com`. Always take the canonical URL from the job page / resolver, never from a board root.
 3. **Embedded detection** — URL contains `gh_jid=`, **or** the URL is not on a `greenhouse.io` domain.
@@ -232,4 +232,3 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
    just no confirmation page. Whether that submission actually landed can only be checked in the tracker /
    mailbox.
 8. **How often does `job-boards.greenhouse.io/<board>` 302 to a company site?** Only `nebius` was verified.
-
