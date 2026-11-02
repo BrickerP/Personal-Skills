@@ -11,7 +11,12 @@ Continue an explicitly requested application through
 [job-search / apply](../job-search/workflows/apply.md).
 
 - [Browser reference](../job-search/references/browser-apply.md): inspect, decide,
-  act once, read back; session handling and UI traps.
+  act once, read back; session handling and UI traps. Identity is the Gmail
+  account, not the Chrome display name: `--browser yplmicro@gmail.com` must be
+  CONNECTED. `Lu (Profile 2, yplmicro@gmail.com)` is preferred on the wp Mac
+  when that profile exists; `您的 Chrome (Default, yplmicro@gmail.com)` or a
+  similar line for the same account on a failover Mac still passes. Any other
+  account is STOP `wrong-profile`. Never grant chrome-use `auth always`.
 - [Application policy](../daily-job-apply/POLICY.md): factual sources, human
   decisions, stops, cadence and daily-50.
 

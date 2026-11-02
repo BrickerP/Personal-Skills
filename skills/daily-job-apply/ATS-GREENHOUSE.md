@@ -143,7 +143,7 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 | company on `data/blocked-companies.json` (the retired runner also had a few in-code names) or ≥ `--company-cap` (default 20) | `company-blocked` / `company-cap-reached` | Skipped | Over-applied already |
 | dedupe hit, not retryable | `duplicate-url` | Skipped | Expected |
 | dedupe error | `dedupe-error:<n>` | ManualFinish | Human inspects |
-| the session's `profile:` line is not `Lu (Profile 2, yplmicro@gmail.com)` | `wrong-profile` | **STOP the whole run** (not a per-role result) | Cleanup: `END-OF-RUN.md` §5 |
+| the session's `profile:` account is not `yplmicro@gmail.com` (wp Mac is usually `Lu (Profile 2, yplmicro@gmail.com)`; Default / `您的 Chrome` for the same account still passes) | `wrong-profile` | **STOP the whole run** (not a per-role result) | Cleanup: `END-OF-RUN.md` §5 |
 | goto / locator timeout | `page-load-or-form-timeout` | **Blocked** | Slow embed — retry off the canonical URL |
 | any other exception | `runner-exception` | **Blocked** | — |
 
@@ -189,7 +189,7 @@ Type comes from the Greenhouse API: `input_text` / `textarea` / `multi_value_sin
 16. **Company naming** → stealth retired 2026-10-18: the real employer may be named (`Baidu — MeDo` current; `Cookiy AI` past). The old label `VC-backed Voice AI Platform Startup` is optional wording only. Still avoid non-public internal specifics (client names under NDA, codenames, revenue details).
 17. **`--system-chrome` had a window guard** → the application tab had to share a window with the
     `yplmicro@gmail.com` Gmail tab. chrome-use has no window id; the equivalent gate is now
-    "same connected profile" (see `END-OF-RUN.md` §3/§5). Session for examples is `jobapply2` (`--browser yplmicro@gmail.com`).
+    the same connected account `yplmicro@gmail.com`, not the Chrome display name (see `END-OF-RUN.md` §3/§5). Session for examples is `jobapply2` (`--browser yplmicro@gmail.com`).
 18. **`pick` may be unavailable or flaky** on some chrome-use versions → fall back to clicking the option or keyboard. Do not stall the run waiting for a Greenhouse site adapter. `#candidate-location`: type the city, then click the matching option; `ArrowDown → Enter` often leaves the field empty.
 19. **Security-code mail** stacks in one thread per company. Always take the **newest** body, not the first code in the thread.
 

@@ -81,7 +81,10 @@ embedded card and land on the `/application` full page.
    then wait for the page (`workflows/04-universal-web-apply.md` step 3); reuse the labelled tab if it already exists.
 4. **Identity guard** — the retired script required a Gmail tab for the `yplmicro@gmail.com` account in the
    same window as the application. It is now a check on every `profile:` line chrome-use prints (the first
-   command of a new or restarted session): it must read `Lu (Profile 2, yplmicro@gmail.com)`, otherwise STOP
+   command of a new or restarted session): the account must be `yplmicro@gmail.com`
+   (`--browser yplmicro@gmail.com`, CONNECTED). `Lu (Profile 2, yplmicro@gmail.com)` is the usual wp Mac
+   line and is preferred when that profile exists; `您的 Chrome (Default, yplmicro@gmail.com)` or another
+   display name for the same account still passes. Any other account = STOP
    (`wrong-profile`, `END-OF-RUN.md` §5).
 5. **First fill pass** — all fields are lazily rendered: scroll the whole form top→bottom→top first. Fill text,
    then handle location dropdowns, extended booleans, and sponsorship separately.
@@ -132,7 +135,7 @@ embedded card and land on the `/application` full page.
 | form contains `talk to jack` / `spoken to jack` | `jack-jill-gate-required` | Unbypassable — skip that board |
 | same URL submitted / ≥20 at the company / on blocked-companies | `duplicate-url` / `company-cap` / `company-blocked` / `duplicate-role` | Do not apply |
 | `Submit Application` clicked, no success text and no danger text | `submit-unverified:ashby` | Human re-checks whether the tab actually submitted |
-| `profile:` line of the session is not `Lu (Profile 2, yplmicro@gmail.com)` | `wrong-profile` (old batch labels: `yplmicro-gmail-not-found` / `wrong-window`) | STOP the run, reconnect chrome-use to the yplmicro profile, then start again (`END-OF-RUN.md` §5) |
+| `profile:` account is not `yplmicro@gmail.com` (wp Mac usually `Lu (Profile 2, …)`; Default / `您的 Chrome` for the same account still passes) | `wrong-profile` (old batch labels: `yplmicro-gmail-not-found` / `wrong-window`) | STOP the run, reconnect chrome-use to `yplmicro@gmail.com`, then start again (`END-OF-RUN.md` §5) |
 
 **Status split (important)**: `{stale-job, form-not-loaded, submit-button-not-found, resume-upload-missing}` =
 **Blocked** (the page could not be prepared; do not touch it again). Everything else, including
