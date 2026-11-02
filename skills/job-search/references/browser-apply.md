@@ -8,9 +8,13 @@ Read while executing [apply](../workflows/apply.md). Policy and facts remain in
 
 Use `chrome-use` in the real logged-in Chrome, following its installed core
 guide for current commands. Use `jobapply2` and `--browser yplmicro@gmail.com`
-on every command that may start a session. Every printed profile line must
-identify Lu (Profile 2, yplmicro@gmail.com). Mismatch stops the run. Never grant
-`auth always` or substitute an unrelated profile.
+on every command that may start a session. Every printed `profile:` line must
+show account `yplmicro@gmail.com`, and that browser entry must be CONNECTED.
+On the wp Mac the line is usually `Lu (Profile 2, yplmicro@gmail.com)` — prefer
+that profile when it exists. On a failover Mac, `您的 Chrome (Default,
+yplmicro@gmail.com)` or a similar display name for the same account still
+passes. Any other account stops the run (`wrong-profile`). Never grant
+`auth always` or substitute an unrelated account.
 
 - Open one labelled application tab. Wait for visible form content rather than
   assuming load means hydration, then take a fresh interactive snapshot.

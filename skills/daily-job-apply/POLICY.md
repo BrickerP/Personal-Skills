@@ -54,10 +54,15 @@ files; never copy personal data into new skill/workflow documents.
   Twilio. Never remove a key or infer expiration from a file's age to proceed.
   This per-role check belongs to Apply, not an optional dashboard. Only exit 0
   with final `ok: true` allows continuation; failed or missing checks stop work.
-- Browser: `chrome-use`, Lu / `yplmicro@gmail.com`, session `jobapply2`.
-  Pin `--browser yplmicro@gmail.com` on every start-capable command. Every
-  printed `profile:` line must match Lu (Profile 2, yplmicro@gmail.com).
-  Mismatch stops the whole run. Never grant `auth always`.
+- Browser: `chrome-use`, account `yplmicro@gmail.com`, session `jobapply2`.
+  Pin `--browser yplmicro@gmail.com` on every start-capable command, and that
+  account must be CONNECTED. A printed `profile:` line passes when its account
+  is `yplmicro@gmail.com`. On the wp Mac the line is usually `Lu (Profile 2,
+  yplmicro@gmail.com)` — prefer that profile when it exists. Another display
+  name for the same account (for example `您的 Chrome (Default,
+  yplmicro@gmail.com)` on a failover Mac) still passes. Medo, cookiy, or any
+  other account stops the whole run as `wrong-profile`. Never grant
+  `auth always`.
 - Only the job-search Gmail account may supply verification codes/job mail;
   never a company mailbox or another logged-in Gmail account.
 - Phone comes only from private `JOB_APPLY_PHONE`, filled with `--from-env` last

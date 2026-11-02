@@ -49,7 +49,7 @@ An existing file is only a candidate list: the agent applies its `auto_candidate
 
 Some Greenhouse boards ask for an ordinary email security code after Submit (`ATS-GREENHOUSE.md` §2.8). This is **verification pending**, not Submitted. The agent may complete ordinary email verification under the current authorization; hand off as ManualFinish if Gmail is unreadable or the step cannot be completed safely.
 
-1. The connected profile is the gate: every `profile:` line `chrome-use` prints (the first command of a new or restarted session) must read `Lu (Profile 2, yplmicro@gmail.com)` (`COLD-START.md` step 3). chrome-use exposes no per-tab window id, so **profile identity, not window identity, is the gate** — a Gmail tab in another Chrome profile is not acceptable.
+1. The connected account is the gate: every `profile:` line `chrome-use` prints (the first command of a new or restarted session) must show account `yplmicro@gmail.com` (`COLD-START.md` step 3). Display name is not the gate. On the wp Mac the line is usually `Lu (Profile 2, yplmicro@gmail.com)`; on a failover Mac `您的 Chrome (Default, yplmicro@gmail.com)` or a similar line for the same account still passes. chrome-use exposes no per-tab window id, so **account identity, not window identity or profile display name, is the gate** — a Gmail tab signed into another account is not acceptable.
 2. Read the code from the `yplmicro@gmail.com` Gmail Inbox only (sender `no-reply@us.greenhouse-mail.io`, subject `Security code for your application to <company>`). It is an 8-character alphanumeric code.
 3. Select the application tab and enter the code:
 
@@ -79,12 +79,12 @@ Hand a tab to the user only for `ManualFinish` (CAPTCHA, SMS, anti-spam, unknown
 
 ## 5. Wrong-profile cleanup
 
-The only identity gate is the `profile:` line `chrome-use` prints whenever a session starts or restarts (closing a session's last tab ends it, so this can recur mid-run); it must read `Lu (Profile 2, yplmicro@gmail.com)`. Every command that can start the session carries `--browser yplmicro@gmail.com`. If a line reads anything else (`wrong-profile`), **STOP the whole run**. It is a run-level stop, not a ledger row:
+The only identity gate is the `profile:` line `chrome-use` prints whenever a session starts or restarts (closing a session's last tab ends it, so this can recur mid-run). The account on that line must be `yplmicro@gmail.com`. On the wp Mac the line is usually `Lu (Profile 2, yplmicro@gmail.com)` — prefer that profile when it exists. On a failover Mac, `您的 Chrome (Default, yplmicro@gmail.com)` or another display name for the same account still passes. Every command that can start the session carries `--browser yplmicro@gmail.com`. If the account is anything else (`wrong-profile`: Medo, cookiy, or another mailbox), **STOP the whole run**. It is a run-level stop, not a ledger row:
 
 1. **Do not fill or submit.**
 2. Close only the tabs this run opened: `chrome-use --session jobapply2 tab close <label>`.
-3. Fix the connection: `chrome-use browsers` must show `Lu` as CONNECTED.
-4. Report the stop. A new run re-opens the JD/application URL with `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"` so it lands under the connected profile.
+3. Fix the connection: `chrome-use browsers` must show the `yplmicro@gmail.com` entry as CONNECTED (on the wp Mac that row is usually named `Lu`). Never grant chrome-use `auth always`.
+4. Report the stop. A new run re-opens the JD/application URL with `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab new --label <platform>-<company> "<url>"` so it lands under the connected account.
 
 Keep **one** application tab in the session at a time (a tab handed over with `keep` has left the session and no longer counts). Do not bulk-create tabs — extra tabs are how a page ends up under a profile you are not watching.
 

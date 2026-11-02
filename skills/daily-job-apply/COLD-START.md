@@ -29,10 +29,10 @@ On drift: **STOP**. Do not auto-re-baseline.
 
 ### 2. chrome-use（真实 Chrome 连接）
 
-浏览器操作用 `chrome-use`，它连接用户已登录的真实 Chrome（profile: `Lu` / `yplmicro@gmail.com`）。投递统一用命名 session `jobapply2`。**Never grant chrome-use `auth always`.**
+浏览器操作用 `chrome-use`，它必须连到账号 **`yplmicro@gmail.com`**。Chrome 的 profile 显示名不是身份：wp Mac（MacM3）上这个账号通常是 `Lu` / Profile 2；failover Mac（yupengs-MacBook-Pro、yupengdeMacBook-Pro）上同一 Gmail 可能是 Default（`您的 Chrome`）。有 `Lu (Profile 2)` 时优先用它。投递统一用命名 session `jobapply2`。**Never grant chrome-use `auth always`.**
 
 ```bash
-chrome-use browsers                                                          # profile `Lu` must show CONNECTED
+chrome-use browsers                                                          # the yplmicro@gmail.com entry must show CONNECTED (wp Mac: usually the row named `Lu`)
 chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list --full   # starts the session and prints the `profile:` line
 ```
 
@@ -40,18 +40,24 @@ If that session sticky-hangs (commands freeze, extension silent), do not thrash 
 
 ### 3. Profile check（连接的 Chrome 身份校验）
 
-Profile identity is checked **whenever a `profile:` line prints**, not once per run: closing a session's last tab ends the session, and the next command restarts it on whatever profile chrome-use picks. So pass `--browser yplmicro@gmail.com` on every command that can start the session (`tab list`, `tab new`, `open`). The line must read `Lu (Profile 2, yplmicro@gmail.com)`. Any other profile = **STOP** `wrong-profile` (cleanup: `END-OF-RUN.md` §5). Never submit from any other profile.
+Account identity is checked **whenever a `profile:` line prints**, not once per run: closing a session's last tab ends the session, and the next command restarts it on whatever profile chrome-use picks. So pass `--browser yplmicro@gmail.com` on every command that can start the session (`tab list`, `tab new`, `open`). The gate is the **account**, not the Chrome profile display name or directory.
+
+- **Required:** `--browser yplmicro@gmail.com`, and chrome-use CONNECTED to that account.
+- **PASS:** any `profile:` line whose account is `yplmicro@gmail.com`. On the wp Mac this is usually `Lu (Profile 2, yplmicro@gmail.com)` — prefer that profile when it exists. On a failover Mac the same account may be `您的 Chrome (Default, yplmicro@gmail.com)` or a similar display name. That is still OK.
+- **STOP `wrong-profile`:** the account on the line is not `yplmicro@gmail.com` (Medo, cookiy, or any other mailbox). A line that does not show this account does not pass. Cleanup: `END-OF-RUN.md` §5. Never submit from a wrong account.
+
+Never grant chrome-use `auth always`.
 
 The old Gmail same-window pairing check no longer exists. The `yplmicro@gmail.com` Gmail tab is only needed to read Greenhouse email security codes (`END-OF-RUN.md` §3).
 
 ### Daily ~50 zero-gate preflight（每日约 50 条零门槛预检）
 
-Run this on the wp Mac **before** a volume run. Target for the weekday routine is **~50 verified zero-gate Greenhouse** submits, not 200 the same night unless the user overrides. Complete the preflight checks before the first submit, then preserve the cadence, stop and reporting rules throughout the run. This is the same preset used by the configured bot routine:
+Run this **before** a volume run, on the machine that will submit. Canonical apply machine is the wp Mac (MacM3). A failover Mac is valid for the same preset when chrome-use is CONNECTED to `yplmicro@gmail.com`. Target for the weekday routine is **~50 verified zero-gate Greenhouse** submits, not 200 the same night unless the user overrides. Complete the preflight checks before the first submit, then preserve the cadence, stop and reporting rules throughout the run. This is the same preset used by the configured bot routine:
 
-1. Chrome-use probe: `chrome-use browsers` (Lu CONNECTED) and `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list --full` → `profile: Lu (Profile 2, yplmicro@gmail.com)`. Also run `TZ=Asia/Shanghai date`.
+1. Chrome-use probe: `chrome-use browsers` (the `yplmicro@gmail.com` entry CONNECTED; on the wp Mac that row is usually `Lu`) and `chrome-use --session jobapply2 --browser yplmicro@gmail.com tab list --full`. The `profile:` account must be `yplmicro@gmail.com`. Usual wp Mac line: `Lu (Profile 2, yplmicro@gmail.com)`. Failover example that still passes: `您的 Chrome (Default, yplmicro@gmail.com)`. Also run `TZ=Asia/Shanghai date`.
 2. Reconnect or open a new session name if hung (same `--browser`; do not retry a dead session). Record the rename.
 3. PDF hash vs `pdf-hashes.txt` (§1). STOP on drift. Confirm the resume PDF path exists.
-4. Profile Lu confirmed whenever a `profile:` line prints. Anything else = STOP `wrong-profile`.
+4. Account `yplmicro@gmail.com` confirmed whenever a `profile:` line prints. A different display name for that account is OK. Any other account = STOP `wrong-profile`.
 5. Resolve the effective blocked-company list in the helper's actual order: `~/job-hunt/data/blocked-companies.json`, then skill-local `data/blocked-companies.json` (first nonempty list, not a merge). Skip every listed key. **Twilio is listed** — Skip `company-blocked` even when the form looks clean. Do not delete a key or infer that an old list expired. Confirm `JOB_APPLY_PHONE` exists in `~/.config/daily-job-apply/env` (never echo the number).
 6. Before opening **each role**, run `job_dedupe_check.py` as workflow 04 specifies. Only exit 0 plus final JSON `ok: true` permits continuation; blocked/duplicate/cap, missing output or an exception stops work. Job-id path-form checks supplement this: `boards.greenhouse.io`, `job-boards.greenhouse.io`, and `embed/job_app?token=` can be the same job. A grep or sourcing filter alone cannot replace the company check.
 7. Zero-gate Greenhouse queue only for this routine.
