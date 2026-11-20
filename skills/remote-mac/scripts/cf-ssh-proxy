@@ -1,0 +1,25 @@
+#!/bin/sh
+# ProxyCommand for `ssh m1|m3|m5`: reaches that Mac through its Cloudflare Tunnel.
+# The Cloudflare Access service token is read from ~/.config/cf-access/mac-ssh.env
+# (mode 600, TUNNEL_SERVICE_TOKEN_ID / TUNNEL_SERVICE_TOKEN_SECRET). A file is used
+# instead of the Keychain because SSH sessions cannot read a locked login Keychain.
+# Proxy variables are cleared because cloudflared cannot use the https:// proxy
+# some office networks set.
+host="${1:?usage: cf-ssh-proxy <hostname>}"
+cf=$(command -v cloudflared 2>/dev/null) || cf=
+if [ -z "$cf" ]; then
+  for c in /opt/homebrew/bin/cloudflared /usr/local/bin/cloudflared; do
+    if [ -x "$c" ]; then cf=$c; break; fi
+  done
+fi
+[ -n "$cf" ] || { echo "cf-ssh-proxy: cloudflared not found" >&2; exit 127; }
+token_file="$HOME/.config/cf-access/mac-ssh.env"
+if [ -r "$token_file" ]; then
+  set -a
+  . "$token_file"
+  set +a
+else
+  echo "cf-ssh-proxy: $token_file missing; Cloudflare Access will reject the connection" >&2
+fi
+unset ALL_PROXY all_proxy HTTPS_PROXY https_proxy HTTP_PROXY http_proxy
+exec "$cf" access ssh --hostname "$host"

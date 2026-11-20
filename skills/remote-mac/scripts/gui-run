@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+"""gui-run: run a command inside the logged-in user's GUI session on this Mac.
+
+Plain SSH sessions cannot use the login Keychain, so git or gh over HTTPS, `security`, and other
+Keychain-backed tools fail there. gui-run hands the command to launchd's gui/<uid> domain as a
+one-off job, waits for it, then prints its stdout and stderr and exits with its exit code.
+
+    gui-run [--cwd DIR] [--timeout SECONDS] 'command ...'
+
+The command runs with `zsh -lic`, so the user's normal PATH (Homebrew, nvm) applies.
+Exit codes: the command's own code; 124 on timeout; 125 if no GUI session is available.
+"""
+import argparse
+import os
+import plistlib
+import secrets
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+
+WRAPPER = 'cd "$1" || exit 97; /bin/zsh -lic "source ${(q)2}" >"$3" 2>"$4" </dev/null; echo $? >"$5.tmp"; mv "$5.tmp" "$5"'
+
+
+def main():
+    parser = argparse.ArgumentParser(prog="gui-run", description=__doc__.split("\n\n")[0])
+    parser.add_argument("--cwd", default=os.path.expanduser("~"))
+    parser.add_argument("--timeout", type=int, default=600)
+    parser.add_argument("command", nargs="+", help="command line, run by zsh")
+    args = parser.parse_args()
+
+    uid = os.getuid()
+    label = f"com.user.gui-run.{os.getpid()}.{secrets.token_hex(3)}"
+    work = tempfile.mkdtemp(prefix="gui-run-")
+    paths = {name: os.path.join(work, name) for name in ("cmd.zsh", "out", "err", "rc", "job.plist")}
+    with open(paths["cmd.zsh"], "w") as f:
+        f.write(" ".join(args.command) + "\n")
+    job = {
+        "Label": label,
+        "ProgramArguments": ["/bin/zsh", "-c", WRAPPER, "gui-run", os.path.abspath(args.cwd), paths["cmd.zsh"],
+                             paths["out"], paths["err"], paths["rc"]],
+        "RunAtLoad": True,
+        "ProcessType": "Interactive",
+    }
+    with open(paths["job.plist"], "wb") as f:
+        plistlib.dump(job, f)
+    try:
+        boot = subprocess.run(["launchctl", "bootstrap", f"gui/{uid}", paths["job.plist"]],
+                              capture_output=True, text=True)
+        if boot.returncode != 0:
+            sys.stderr.write(f"gui-run: no GUI session to run in ({boot.stderr.strip() or boot.returncode})\n")
+            return 125
+        deadline = time.monotonic() + args.timeout
+        while not os.path.exists(paths["rc"]):
+            if time.monotonic() > deadline:
+                sys.stderr.write(f"gui-run: timed out after {args.timeout}s; job stopped\n")
+                return 124
+            time.sleep(0.2)
+        time.sleep(0.05)
+        for name, stream in (("out", sys.stdout), ("err", sys.stderr)):
+            if os.path.exists(paths[name]):
+                with open(paths[name], errors="replace") as f:
+                    shutil.copyfileobj(f, stream)
+        stream_rc = open(paths["rc"]).read().strip()
+        return int(stream_rc) if stream_rc.isdigit() else 1
+    finally:
+        subprocess.run(["launchctl", "bootout", f"gui/{uid}/{label}"], capture_output=True)
+        shutil.rmtree(work, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

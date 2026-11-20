@@ -1,0 +1,29 @@
+#!/bin/sh
+# Run once on each Mac with sudo:  sudo ~/.local/bin/macmesh-harden
+# 1) SSH accepts keys only (no passwords).  2) Turns on Remote Login if it is off.
+set -eu
+if [ "$(id -u)" != 0 ]; then echo "Run: sudo $0"; exit 1; fi
+conf=/etc/ssh/sshd_config.d/000-keys-only.conf
+printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\n' > "$conf"
+chmod 644 "$conf"
+echo "Wrote $conf"
+if ! /usr/bin/nc -z -w 2 127.0.0.1 22 >/dev/null 2>&1; then
+  if /usr/sbin/systemsetup -f -setremotelogin on >/dev/null 2>&1; then
+    echo "Turned on Remote Login"
+  else
+    echo "Could not turn on Remote Login from the terminal."
+    echo "Turn it on in System Settings > General > Sharing > Remote Login, then run this again."
+    exit 2
+  fi
+  sleep 2
+fi
+if ls /etc/ssh/ssh_host_*_key >/dev/null 2>&1; then
+  /usr/sbin/sshd -t && echo "sshd config is valid"
+fi
+result=$(/usr/bin/ssh -o BatchMode=yes -o PreferredAuthentications=none -o StrictHostKeyChecking=no \
+  -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 check@127.0.0.1 true 2>&1 | grep -i 'permission denied' || true)
+echo "Login methods now offered: ${result:-unknown (sshd not answering yet)}"
+case "$result" in
+  *password*|*keyboard-interactive*) echo "WARNING: passwords are still accepted"; exit 3 ;;
+esac
+echo "Done."
