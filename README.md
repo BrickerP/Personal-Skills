@@ -44,7 +44,7 @@ git clone https://github.com/BrickerP/Personal-Skills.git ~/projects/personal/sk
 **求职**：[job-search](skills/job-search/SKILL.md)（生命周期入口）· gh-resume-builder（证据/展示）；旧求职名字只作兼容，LinkedIn 包冻结
 **生活/订阅**：dating-time · daily-read · ai-daily · fs-street
 **浏览器**：chrome-use
-**云/支付/运维**：cf-cli · aws-cli · stripe-cli-ops · codex-usage · codex-wallpaper · [grok-remote](skills/grok-remote/SKILL.md)
+**云/支付/运维**：cf-cli · aws-cli · stripe-cli-ops · codex-usage · codex-wallpaper · [remote-mac](skills/remote-mac/SKILL.md)（ssh m1/m3/m5，任意网络） · [grok-remote](skills/grok-remote/SKILL.md)
 **外观/终端**：wezterm-wallpaper（WezTerm 壁纸选择器 + 柔和模式）
 **内容/资料**：obsidian · lark-history-exporter · gmail-ai-daily-ops · lavayou-author-lens
 **创作/前端**：creative · draw-something · astryx-frontend · imagegen

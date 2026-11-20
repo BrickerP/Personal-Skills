@@ -1,0 +1,4 @@
+interface:
+  display_name: "Remote Mac"
+  short_description: "Run commands on Yupeng's other Macs over SSH"
+  default_prompt: "Use $remote-mac to check which Mac I mean, then run my requested command there with ssh."
