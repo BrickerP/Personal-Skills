@@ -16,7 +16,7 @@ description: Use when a task needs a shell, files, a port, or an OpenCode/Codex 
 ## What each Mac needs
 
 - Outbound HTTPS to Cloudflare. The Macs do not need the same network, a VPN, a public IP or an open port, and the tunnel works alongside DuLink, WARP and Clash Verge.
-- Awake. A sleeping Mac drops its tunnel. On power, M5 and M1 sleep after 30 idle minutes (`pmset -g`); M3 is set never to sleep. Run long remote jobs under `caffeinate -i` so the target stays awake until they finish.
+- Awake. A sleeping Mac drops its tunnel. On power, M5 and M1 may sleep after 30 idle minutes (`pmset -g`); M3 is set never to sleep. Run long remote jobs under `caffeinate -i` so the target stays awake until they finish.
 - Logged in. `cloudflared` runs as a LaunchAgent and FileVault is on, so after a restart the Mac stays unreachable until someone logs in at its screen.
 - Remote Login on, keys only (`sudo ~/.local/bin/macmesh-harden`).
 
