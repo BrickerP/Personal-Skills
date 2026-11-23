@@ -61,11 +61,25 @@ ssh m5 'gui-run --cwd ~/code/personal/repo "git pull --ff-only && gh pr list"'
 - The scripts live in this skill's `scripts/` directory and are symlinked into `~/.local/bin`: `cf-ssh-proxy`, `gui-run`, `macmesh-harden` (run once with sudo: SSH keys only, Remote Login on).
 - The hostnames sit under `oakrelay.dpdns.org`, a free DigitalPlat FreeDomain name that is registered for a year at a time and renewed in the DigitalPlat dashboard. If it lapses, every `ssh m1|m3|m5` fails.
 
-## Set up another Mac
+## Add another Mac
 
-Needs a tunnel and DNS name for the new Mac in the Cloudflare account, added to the Access application.
+A new Mac can neither reach the others nor be reached until its own tunnel runs. The tunnel needs two secret files from M3, its tunnel credentials and the Access token file, so they have to be carried to the new Mac once. Never paste them into a chat in plain text. `<domain>` below is the domain in `HostName` in `~/.ssh/config`.
 
-1. Symlink `scripts/cf-ssh-proxy`, `scripts/gui-run` and `scripts/macmesh-harden` into `~/.local/bin`.
-2. Run `scripts/ssh-config-block.py <tunnel domain>`; copy the domain from `HostName` in another Mac's `~/.ssh/config`.
-3. Copy the token file from a working Mac: `ssh m3 'cat ~/.config/cf-access/mac-ssh.env' > ~/.config/cf-access/mac-ssh.env` (mode 600).
-4. Create `~/.ssh/id_ed25519_macmesh` and add its public key to every Mac's `authorized_keys`; run `sudo ~/.local/bin/macmesh-harden`.
+1. On M3, which holds the Cloudflare tunnel certificate: pick an alias such as `m4`. Add `<alias>.<domain>` to the Access application "Mac SSH" first, so the hostname is never reachable without the service token. Then run `cloudflared tunnel create mac-<alias>` and `cloudflared tunnel route dns mac-<alias> <alias>.<domain>`.
+2. Build a bundle on M3: the tunnel credentials JSON from step 1, `~/.config/cf-access/mac-ssh.env`, a `mac-ssh.yml` and `com.user.cloudflared-mac-ssh` LaunchAgent written like M1's, the three `id_ed25519_macmesh.pub` keys, and this skill's `scripts/`. Then delete the credentials JSON on M3.
+3. Carry the bundle by AirDrop or USB. If the new Mac is elsewhere, encrypt the bundle to a one-time key with the stock `/usr/bin/openssl` (tested on macOS LibreSSL 3.3.6):
+   - On the new Mac: `openssl req -x509 -newkey rsa:3072 -nodes -keyout k.pem -out k.crt -subj /CN=join -days 1`. Send `k.crt`, which is public.
+   - On M3: `openssl smime -encrypt -aes256 -binary -outform PEM -in bundle.tgz k.crt`. The result is a few KB of text and safe to send.
+   - On the new Mac: `openssl smime -decrypt -binary -inform PEM -inkey k.pem`, then delete `k.pem`.
+4. On the new Mac, with its admin password:
+   - Install `cloudflared` (`brew install cloudflared`).
+   - Put the token file at `~/.config/cf-access/mac-ssh.env` (mode 600) and the tunnel files under `~/.cloudflared/`.
+   - Add the three public keys to `~/.ssh/authorized_keys`.
+   - Run `macmesh-harden` with sudo, then load the LaunchAgent.
+5. From M3, once `ssh <alias>` works:
+   - Add the alias to the `Host` line in `scripts/ssh-config-block.py`, commit, and rerun the script on every Mac. The block assumes the user name `yupeng`; a Mac with another user name needs its own `Host <alias>` and `User` entry above the block.
+   - Create the new Mac's `~/.ssh/id_ed25519_macmesh` and add its public key to every Mac's `authorized_keys`.
+   - Link the scripts into `~/.local/bin` and put `~/.local/bin` on PATH in `~/.zshenv`.
+   - Test `ssh` in every direction.
+
+Cloudflare's temporary trycloudflare tunnels cannot replace the carried bundle: on 2026-11-23 their hostnames did not resolve on M3's network.
